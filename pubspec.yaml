@@ -56,6 +56,10 @@ dev_dependencies:
   build_runner: ^2.4.13
   custom_lint: ^0.7.0
   riverpod_lint: ^2.6.2
+  unrar_file:
+    git:
+      url: https://github.com/Makarov96/unrar_file_fork
+      ref: master
 
 # For information on the generic Dart part of this file, see the
 # following page: https://dart.dev/tools/pub/pubspec

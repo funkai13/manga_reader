@@ -762,6 +762,15 @@ packages:
       url: "https://pub.dev"
     source: hosted
     version: "1.4.0"
+  unrar_file:
+    dependency: "direct dev"
+    description:
+      path: "."
+      ref: master
+      resolved-ref: "207729838aac34bd4c460c067d098be0a18b86c7"
+      url: "https://github.com/Makarov96/unrar_file_fork"
+    source: git
+    version: "1.0.0"
   uuid:
     dependency: transitive
     description:
