@@ -1,6 +1,7 @@
 import 'dart:io';
 
 import 'package:archive/archive.dart';
+import 'package:unrar_file/unrar_file.dart';
 
 import '../../domain/repositories/comic_file_repository.dart';
 
@@ -14,7 +15,7 @@ class ComicFileRepositoryImpl implements ComicFileRepository {
       final archive = ZipDecoder().decodeBytes(bytes);
       return _extractFiles(archive);
     } else if (filePath.endsWith('.cbr')) {
-      throw Exception("Cbrt sin implementar");
+      return _extractFilesFromRar(filePath);
     } else {
       throw Exception('Unsupported file format');
     }
@@ -35,24 +36,33 @@ class ComicFileRepositoryImpl implements ComicFileRepository {
     return extractedFiles;
   }
 
-// Future<List<File>> _extractFilesFromRar(String filePath) async {
-//   final tempDir = Directory.systemTemp.createTempSync();
-//   final extractedFiles = <File>[];
-//
-//   try {
-//     final archive = await UnrarFile.extract_rar(filePath, tempDir.path) ?? [];
-//
-//     // for (final file in archive) {
-//     //   final filePath = '${tempDir.path}/${file.filename}';
-//     //   if (file.filename.endsWith('.jpg') ||
-//     //       file.filename.endsWith('.png')) {
-//     //     extractedFiles.add(File(filePath));
-//     //   }
-//     // }
-//   } catch (e) {
-//     throw Exception('Error extracting CBR file: $e');
-//   }
-//
-//   return extractedFiles;
-// }
+  Future<List<File>> _extractFilesFromRar(String filePath) async {
+    final tempDir = Directory.systemTemp.createTempSync();
+    final extractedFiles = <File>[];
+
+    try {
+      await UnrarFile.extract_rar(filePath, tempDir.path);
+
+      final extractedDir = Directory(tempDir.path);
+      final files =
+          extractedDir.listSync(recursive: true); // Recursively list all files
+      print("Extracted files: $files");
+      for (final entity in files) {
+        if (entity is File) {
+          final filePath = entity.path;
+          print("Checking file: $filePath");
+          if (filePath.endsWith('.jpg') || filePath.endsWith('.png')) {
+            print("Adding file: $filePath");
+            extractedFiles.add(entity);
+          }
+        }
+      }
+      print("Extracted files list: $extractedFiles");
+    } catch (e) {
+      print('Error extracting CBR file: $e');
+      throw Exception('Error extracting CBR file: $e');
+    }
+
+    return extractedFiles;
+  }
 }

@@ -14,7 +14,6 @@ class ComicController extends AutoDisposeAsyncNotifier<List<ComicEntity>> {
   Future<void> addComic(BuildContext context) async {
     final comicRepository = ref.read(comicRepositoryProvider);
 
-    // Selección del archivo
     final result = await FilePicker.platform.pickFiles(
       type: FileType.any,
     );
@@ -22,13 +21,10 @@ class ComicController extends AutoDisposeAsyncNotifier<List<ComicEntity>> {
     if (result != null && result.files.isNotEmpty) {
       final filePath = result.files.single.path;
       final fileName = result.files.single.name;
-      final extension =
-          fileName.split('.').last.toLowerCase(); // Usamos fileName aquí
+      final extension = fileName.split('.').last.toLowerCase();
 
-      // Verificación de la extensión del archivo
       if (extension == 'cbr' || extension == 'cbz') {
         if (filePath != null) {
-          // Crea una nueva instancia de ComicEntity
           final newComic = ComicEntity(
             filePath: filePath,
             title: fileName,
@@ -40,18 +36,16 @@ class ComicController extends AutoDisposeAsyncNotifier<List<ComicEntity>> {
           );
           await comicRepository.addComic(newComic);
           print('Inserting comic: $newComic, ');
-          // Actualiza el estado del controlador para reflejar los cambios
+
           state = AsyncData([...state.value ?? [], newComic]);
         }
       } else {
-        // Muestra un mensaje de error si el archivo no es válido
         ScaffoldMessenger.of(context).showSnackBar(
           const SnackBar(
               content: Text("Seleccione un archivo con extensión .cbr o .cbz")),
         );
       }
     } else {
-      // Muestra un mensaje de error si no se selecciona un archivo
       ScaffoldMessenger.of(context).showSnackBar(
         const SnackBar(content: Text("No se seleccionó ningún archivo.")),
       );
