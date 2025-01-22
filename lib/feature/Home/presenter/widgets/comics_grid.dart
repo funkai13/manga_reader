@@ -1,3 +1,5 @@
+import 'dart:io';
+
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:manga_reader/feature/Home/domain/entity/comic.dart';
@@ -77,9 +79,9 @@ class ComicCard extends StatelessWidget {
           crossAxisAlignment: CrossAxisAlignment.stretch,
           children: [
             Expanded(
-              child: comic.picture != null
-                  ? Image.network(
-                      comic.picture!,
+              child: comic.picture.isNotEmpty
+                  ? Image.file(
+                      File(comic.picture),
                       fit: BoxFit.cover,
                     )
                   : Container(

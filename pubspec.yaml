@@ -40,6 +40,8 @@ dependencies:
   flutter_riverpod: ^2.6.1
   riverpod_annotation: ^2.6.1
   sqflite: ^2.4.1
+  path_provider: ^2.1.5
+  xml: ^6.5.0
   
 
 dev_dependencies:

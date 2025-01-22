@@ -8,7 +8,7 @@ class ComicModel extends ComicEntity {
       required super.lastOpened,
       required super.currentReading,
       required currentPage,
-      required picture,
+      required super.picture,
       required id});
 
   Map<String, dynamic> toMap() {
