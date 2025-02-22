@@ -4,6 +4,7 @@ import 'dart:io';
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
+import 'package:vibration/vibration.dart';
 
 import '../controller/comic_viewer_controller.dart';
 
@@ -39,7 +40,10 @@ class _ComicViewerScreenState extends ConsumerState<ComicViewerScreen> {
   }
 
   void _startLongPress() {
-    _longPressTimer = Timer(const Duration(milliseconds: 300), () {
+    _longPressTimer = Timer(const Duration(milliseconds: 300), () async {
+      if (await Vibration.hasVibrator()) {
+        Vibration.vibrate(duration: 50);
+      }
       setState(() {
         _isLongPressing = true;
         _showControls = true;
@@ -169,13 +173,15 @@ class _ComicViewerScreenState extends ConsumerState<ComicViewerScreen> {
               Text(
                 'Página ${_currentPageIndex + 1}',
                 style: const TextStyle(
+                    decoration: TextDecoration.none,
                     color: Colors.white,
                     fontSize: 18,
                     fontWeight: FontWeight.bold),
               ),
               Text(
-                '${totalPages}p',
+                '${totalPages} Páginas',
                 style: const TextStyle(
+                    decoration: TextDecoration.none,
                     color: Colors.white70,
                     fontSize: 18,
                     fontWeight: FontWeight.bold),
