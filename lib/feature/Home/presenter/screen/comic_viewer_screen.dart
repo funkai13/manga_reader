@@ -1,17 +1,20 @@
 import 'dart:async';
 import 'dart:io';
+import 'dart:math';
 
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
+import 'package:manga_reader/feature/Home/domain/entity/comic.dart';
+import 'package:manga_reader/feature/Home/presenter/controller/comic_controller.dart';
 import 'package:vibration/vibration.dart';
 
 import '../controller/comic_viewer_controller.dart';
 
 class ComicViewerScreen extends ConsumerStatefulWidget {
-  final String filePath;
+  final ComicEntity comic;
 
-  const ComicViewerScreen({super.key, required this.filePath});
+  const ComicViewerScreen({super.key, required this.comic});
 
   @override
   ConsumerState<ComicViewerScreen> createState() => _ComicViewerScreenState();
@@ -35,7 +38,7 @@ class _ComicViewerScreenState extends ConsumerState<ComicViewerScreen> {
     Future(() {
       ref
           .read(comicViewerControllerProvider.notifier)
-          .loadComic(widget.filePath);
+          .loadComic(widget.comic.filePath);
     });
   }
 
@@ -70,6 +73,54 @@ class _ComicViewerScreenState extends ConsumerState<ComicViewerScreen> {
   void _toggleControls() => setState(() => _showControls = !_showControls);
 
   void _toggleMangaMode() => setState(() => _mangaMode = !_mangaMode);
+
+  void _toggleBookMark() {
+    ref
+        .read(comicControllerProvider.notifier)
+        .createBookmark(widget.comic.id!, _currentPageIndex + 1);
+  }
+
+  void _handleProgressTap(TapDownDetails details, int totalPages) {
+    final renderBox = context.findRenderObject() as RenderBox;
+    final offset = details.localPosition.dx;
+    final width = renderBox.size.width;
+    final page = (offset / width * totalPages).floor().clamp(0, totalPages - 1);
+    _pageController.animateToPage(
+      page,
+      duration: const Duration(milliseconds: 300),
+      curve: Curves.easeInOut,
+    );
+  }
+
+  void _handleProgressDrag(DragUpdateDetails details, int totalPages) {
+    final renderBox = context.findRenderObject() as RenderBox;
+    final offset = details.localPosition.dx;
+    final width = renderBox.size.width;
+    final page = (offset / width * totalPages).floor().clamp(0, totalPages - 1);
+    _pageController.jumpToPage(page);
+  }
+
+  void _showPageSelector(int totalPages) {
+    showDialog(
+      context: context,
+      builder: (context) => AlertDialog(
+        backgroundColor: Colors.black.withOpacity(0.9),
+        contentPadding: const EdgeInsets.all(10),
+        content: SizedBox(
+          width: double.maxFinite,
+          child: Column(
+            mainAxisSize: MainAxisSize.min,
+            children: [
+              const Text('Seleccionar Página',
+                  style: TextStyle(color: Colors.white, fontSize: 18)),
+              const SizedBox(height: 10),
+              _buildPageGrid(totalPages),
+            ],
+          ),
+        ),
+      ),
+    );
+  }
 
   @override
   void dispose() {
@@ -109,6 +160,101 @@ class _ComicViewerScreenState extends ConsumerState<ComicViewerScreen> {
     );
   }
 
+  Widget _buildPageGrid(int totalPages) {
+    final comicState = ref.watch(comicViewerControllerProvider);
+
+    return comicState.when(
+      data: (images) => SizedBox(
+        height: MediaQuery.of(context).size.height * 0.6,
+        child: GridView.builder(
+          gridDelegate: const SliverGridDelegateWithFixedCrossAxisCount(
+            crossAxisCount: 3,
+            crossAxisSpacing: 5,
+            mainAxisSpacing: 5,
+          ),
+          itemCount: images.length,
+          itemBuilder: (context, index) {
+            // Calcular índice real según modo manga
+            final adjustedIndex = _mangaMode ? totalPages - index - 1 : index;
+            final isCurrentPage = _currentPageIndex == adjustedIndex;
+
+            return GestureDetector(
+              onTap: () {
+                Navigator.pop(context);
+                _pageController.animateToPage(
+                  adjustedIndex, // Usar índice ajustado
+                  duration: const Duration(milliseconds: 300),
+                  curve: Curves.easeInOut,
+                );
+              },
+              child: Stack(
+                fit: StackFit.expand,
+                children: [
+                  // Imagen ajustada al modo manga
+                  Image.file(
+                    images[adjustedIndex],
+                    fit: BoxFit.cover,
+                    cacheWidth: 200,
+                  ),
+
+                  // Resaltado de página actual
+                  if (isCurrentPage)
+                    Container(
+                      decoration: BoxDecoration(
+                        border: Border.all(
+                          color: Colors.amber,
+                          width: 3,
+                        ),
+                        color: Colors.white54,
+                      ),
+                    ),
+
+                  // Fondo degradado
+                  Container(
+                    decoration: BoxDecoration(
+                      gradient: LinearGradient(
+                        begin: Alignment.topCenter,
+                        end: Alignment.bottomCenter,
+                        colors: [
+                          Colors.black.withOpacity(0.3),
+                          Colors.transparent,
+                          Colors.transparent,
+                          Colors.black.withOpacity(0.3),
+                        ],
+                      ),
+                    ),
+                  ),
+
+                  // Número de página (corregido para modo manga)
+                  Center(
+                    child: Text(
+                      '${adjustedIndex + 1}', // Mostrar número real
+                      style: const TextStyle(
+                        fontSize: 26,
+                        fontWeight: FontWeight.bold,
+                        color: Colors.white,
+                        shadows: [
+                          Shadow(
+                            blurRadius: 8.0,
+                            color: Colors.black,
+                            offset: Offset(2.0, 2.0),
+                          ),
+                        ],
+                      ),
+                    ),
+                  ),
+                ],
+              ),
+            );
+          },
+        ),
+      ),
+      loading: () => const Center(child: CircularProgressIndicator()),
+      error: (error, _) =>
+          Text('Error: $error', style: const TextStyle(color: Colors.red)),
+    );
+  }
+
   Widget _buildControlsOverlay(int totalPages) {
     final progress =
         totalPages > 0 ? (_currentPageIndex + 1) / totalPages : 0.0;
@@ -137,6 +283,15 @@ class _ComicViewerScreenState extends ConsumerState<ComicViewerScreen> {
                 onPressed: () => Navigator.pop(context),
               ),
               actions: [
+                IconButton(
+                  onPressed: _toggleBookMark,
+                  icon: const Icon(Icons.bookmark, color: Colors.white),
+                ),
+                IconButton(
+                  icon: const Icon(Icons.list, color: Colors.white),
+                  // Nuevo botón selector
+                  onPressed: () => _showPageSelector(totalPages),
+                ),
                 IconButton(
                   icon: Icon(
                     _mangaMode ? Icons.book : Icons.menu_book,
@@ -168,60 +323,65 @@ class _ComicViewerScreenState extends ConsumerState<ComicViewerScreen> {
       child: Column(
         children: [
           Row(
-            mainAxisAlignment: MainAxisAlignment.spaceBetween,
-            children: [
-              Text(
-                'Página ${_currentPageIndex + 1}',
-                style: const TextStyle(
-                    decoration: TextDecoration.none,
-                    color: Colors.white,
-                    fontSize: 18,
-                    fontWeight: FontWeight.bold),
-              ),
-              Text(
-                '${totalPages} Páginas',
-                style: const TextStyle(
-                    decoration: TextDecoration.none,
-                    color: Colors.white70,
-                    fontSize: 18,
-                    fontWeight: FontWeight.bold),
-              ),
-            ],
-          ),
+              mainAxisAlignment: MainAxisAlignment.spaceBetween,
+              children: _mangaMode
+                  ? [
+                      Text(
+                        '$totalPages Páginas',
+                        style: const TextStyle(
+                            decoration: TextDecoration.none,
+                            color: Colors.white70,
+                            fontSize: 18,
+                            fontWeight: FontWeight.bold),
+                      ),
+                      Text(
+                        'Página ${_currentPageIndex + 1}',
+                        style: const TextStyle(
+                            decoration: TextDecoration.none,
+                            color: Colors.white,
+                            fontSize: 18,
+                            fontWeight: FontWeight.bold),
+                      ),
+                    ]
+                  : [
+                      Text(
+                        'Página ${_currentPageIndex + 1}',
+                        style: const TextStyle(
+                            decoration: TextDecoration.none,
+                            color: Colors.white,
+                            fontSize: 18,
+                            fontWeight: FontWeight.bold),
+                      ),
+                      Text(
+                        '$totalPages Páginas',
+                        style: const TextStyle(
+                            decoration: TextDecoration.none,
+                            color: Colors.white70,
+                            fontSize: 18,
+                            fontWeight: FontWeight.bold),
+                      ),
+                    ]),
           const SizedBox(height: 8),
-          SizedBox(
-            height: 4,
-            child: LinearProgressIndicator(
-              value: progress,
-              backgroundColor: Colors.white.withOpacity(0.2),
-              valueColor: AlwaysStoppedAnimation<Color>(
-                Colors.white.withOpacity(0.8),
+          Transform(
+            alignment: Alignment.center,
+            transform: Matrix4.rotationY(_mangaMode ? pi : 0),
+            child: GestureDetector(
+              onTapDown: (details) => _handleProgressTap(details, totalPages),
+              onHorizontalDragUpdate: (details) =>
+                  _handleProgressDrag(details, totalPages),
+              child: SizedBox(
+                height: 24,
+                child: LinearProgressIndicator(
+                  value: progress,
+                  backgroundColor: Colors.white.withOpacity(0.2),
+                  valueColor: AlwaysStoppedAnimation<Color>(
+                      Colors.white.withOpacity(0.8)),
+                  borderRadius: BorderRadius.circular(10),
+                ),
               ),
-              borderRadius: BorderRadius.circular(2),
             ),
           ),
           const SizedBox(height: 12),
-          /* Row(
-            mainAxisAlignment: MainAxisAlignment.spaceBetween,
-            children: [
-              IconButton(
-                icon: const Icon(Icons.chevron_left,
-                    color: Colors.white, size: 32),
-                onPressed: () => _pageController.previousPage(
-                  duration: const Duration(milliseconds: 300),
-                  curve: Curves.easeInOut,
-                ),
-              ),
-              IconButton(
-                icon: const Icon(Icons.chevron_right,
-                    color: Colors.white, size: 32),
-                onPressed: () => _pageController.nextPage(
-                  duration: const Duration(milliseconds: 300),
-                  curve: Curves.easeInOut,
-                ),
-              ),
-            ],
-          ),*/
         ],
       ),
     );
@@ -266,8 +426,7 @@ class ComicPage extends StatefulWidget {
   State<ComicPage> createState() => _ComicPageState();
 }
 
-class _ComicPageState extends State<ComicPage>
-    with AutomaticKeepAliveClientMixin, TickerProviderStateMixin {
+class _ComicPageState extends State<ComicPage> with TickerProviderStateMixin {
   late final TransformationController _transformationController;
   late final AnimationController _animationController;
   late Offset _doubleTapLocalPosition = Offset.zero;
@@ -329,7 +488,6 @@ class _ComicPageState extends State<ComicPage>
 
   @override
   Widget build(BuildContext context) {
-    super.build(context);
     return GestureDetector(
       onDoubleTap: _onDoubleTap,
       onDoubleTapDown: (details) {
@@ -346,7 +504,4 @@ class _ComicPageState extends State<ComicPage>
       ),
     );
   }
-
-  @override
-  bool get wantKeepAlive => true;
 }
