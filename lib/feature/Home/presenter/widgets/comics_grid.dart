@@ -23,9 +23,7 @@ class _ComicsGridState extends ConsumerState<ComicsGrid> {
   }
 
   Future<void> _fetchComics() async {
-    var comics =
-        await ref.read(comicControllerProvider.notifier).getAllComics();
-    print('$comics veamos si hay datos');
+    await ref.read(comicControllerProvider.notifier).getAllComics();
   }
 
   @override
@@ -66,7 +64,7 @@ class ComicCard extends StatelessWidget {
         Navigator.push(
           context,
           MaterialPageRoute(
-            builder: (context) => ComicViewerScreen(filePath: comic.filePath),
+            builder: (context) => ComicViewerScreen(comic: comic),
           ),
         );
       },
@@ -99,7 +97,7 @@ class ComicCard extends StatelessWidget {
                 comic.title,
                 maxLines: 2,
                 overflow: TextOverflow.ellipsis,
-                style: TextStyle(
+                style: const TextStyle(
                   fontWeight: FontWeight.bold,
                   fontSize: 16,
                 ),

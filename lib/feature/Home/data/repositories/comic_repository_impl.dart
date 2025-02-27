@@ -31,12 +31,9 @@ class ComicRepositoryImpl implements ComicRepository {
         totalPages: comic.totalPages,
         lastOpened: comic.lastOpened,
         currentReading: comic.currentReading,
-        currentPage: comic.currentPage,
+        currentReadPage: comic.currentReadPage,
         picture: thumbnailPath.toString(),
         id: comic.id);
-
-    print('Ruta de la imagen: ${comicModel.picture}');
-    print('title ${comicModel.title}');
 
     await datasource.addComic(comicModel);
   }
@@ -174,5 +171,11 @@ class ComicRepositoryImpl implements ComicRepository {
       print('Error al procesar el XML: $e');
       return null;
     }
+  }
+
+  @override
+  Future<void> addBookMark(int id, int bookmark) async {
+    int? currentPage = bookmark;
+    await datasource.updateBookmark(id, currentPage);
   }
 }

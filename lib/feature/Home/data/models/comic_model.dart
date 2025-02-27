@@ -7,9 +7,9 @@ class ComicModel extends ComicEntity {
       required super.totalPages,
       required super.lastOpened,
       required super.currentReading,
-      required currentPage,
+      required super.currentReadPage,
       required super.picture,
-      required id});
+      required super.id});
 
   Map<String, dynamic> toMap() {
     return {
@@ -17,7 +17,7 @@ class ComicModel extends ComicEntity {
       'filePath': filePath,
       'title': title,
       'picture': picture,
-      'currentPage': currentPage,
+      'currentPage': currentReadPage,
       'totalPages': totalPages,
       'lastOpened': lastOpened,
       'currentReading': currentReading,
@@ -26,11 +26,11 @@ class ComicModel extends ComicEntity {
 
   factory ComicModel.fromMap(Map<String, dynamic> map) {
     return ComicModel(
-      id: map['id'],
+      id: map['id'] as int,
       filePath: map['filePath'],
       title: map['title'],
       picture: map['picture'],
-      currentPage: map['currentPage'],
+      currentReadPage: map['currentPage'],
       totalPages: map['totalPages'],
       lastOpened: map['lastOpened'],
       currentReading: map['currentReading'],

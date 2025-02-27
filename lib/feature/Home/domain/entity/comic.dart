@@ -3,7 +3,7 @@ class ComicEntity {
   final String filePath;
   final String title;
   final String picture;
-  final int currentPage;
+  final int currentReadPage;
   final int totalPages;
   final String lastOpened;
   final int currentReading;
@@ -13,7 +13,7 @@ class ComicEntity {
     required this.title,
     required this.filePath,
     this.picture = '',
-    this.currentPage = 0,
+    required this.currentReadPage,
     required this.totalPages,
     required this.lastOpened,
     required this.currentReading,

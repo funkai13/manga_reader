@@ -42,14 +42,45 @@ class ComicDatabase {
     ''');
   }
 
-  Future<void> addComic(ComicModel comic) async {
+  Future<int> addComic(ComicModel comic) async {
     final db = await database;
-    await db.insert('comics', comic.toMap());
+
+    int id = await db.insert('comics', comic.toMap());
+    final result = await db.query('comics');
+    print(result); // Aquí puedes ver si el id se generó correctamente
+
+    return id;
   }
 
   Future<List<ComicModel>> fetchAllComics() async {
     final db = await database;
     final maps = await db.query('comics');
     return List.generate(maps.length, (i) => ComicModel.fromMap(maps[i]));
+  }
+
+  Future<void> updateBookmark(int id, int currentPage) async {
+    final db = await database;
+
+    await db.update(
+      'comics',
+      {'currentPage': currentPage}, // Solo actualiza currentPage
+      where: 'id = ?',
+      whereArgs: [id], // Parámetro seguro para evitar inyección SQL
+    );
+
+    // Verificar si la actualización fue exitosa
+    final result = await db.query(
+      'comics',
+      columns: ['id', 'currentPage'],
+      where: 'id = ?',
+      whereArgs: [id],
+    );
+
+    if (result.isNotEmpty) {
+      print(
+          "Comic ID: ${result.first['id']} - Current Page actualizado: ${result.first['currentPage']}");
+    } else {
+      print("No se encontró el cómic con ID: $id");
+    }
   }
 }

@@ -34,7 +34,7 @@ class _ComicViewerScreenState extends ConsumerState<ComicViewerScreen> {
     super.initState();
     SystemChrome.setEnabledSystemUIMode(SystemUiMode.immersiveSticky);
     _pageController.addListener(_updateCurrentPage);
-
+    print(widget.comic.currentReadPage);
     Future(() {
       ref
           .read(comicViewerControllerProvider.notifier)
@@ -77,7 +77,7 @@ class _ComicViewerScreenState extends ConsumerState<ComicViewerScreen> {
   void _toggleBookMark() {
     ref
         .read(comicControllerProvider.notifier)
-        .createBookmark(widget.comic.id!, _currentPageIndex + 1);
+        .createBookmark(widget.comic.id!, _currentPageIndex);
   }
 
   void _handleProgressTap(TapDownDetails details, int totalPages) {
@@ -125,7 +125,9 @@ class _ComicViewerScreenState extends ConsumerState<ComicViewerScreen> {
   @override
   void dispose() {
     SystemChrome.setEnabledSystemUIMode(SystemUiMode.edgeToEdge);
+    _pageController.removeListener(_updateCurrentPage);
     _pageController.dispose();
+
     super.dispose();
   }
 
@@ -285,7 +287,9 @@ class _ComicViewerScreenState extends ConsumerState<ComicViewerScreen> {
               actions: [
                 IconButton(
                   onPressed: _toggleBookMark,
-                  icon: const Icon(Icons.bookmark, color: Colors.white),
+                  icon: widget.comic.currentReadPage == _currentPageIndex
+                      ? const Icon(Icons.bookmark, color: Colors.white)
+                      : const Icon(Icons.bookmark_outline, color: Colors.white),
                 ),
                 IconButton(
                   icon: const Icon(Icons.list, color: Colors.white),
