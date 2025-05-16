@@ -21,7 +21,7 @@ class ComicViewerScreen extends ConsumerStatefulWidget {
 }
 
 class _ComicViewerScreenState extends ConsumerState<ComicViewerScreen> {
-  final PageController _pageController = PageController();
+  late PageController _pageController;
   final Map<int, double> _pageScales = {};
   int _currentPageIndex = 0;
   bool _showControls = false;
@@ -32,13 +32,26 @@ class _ComicViewerScreenState extends ConsumerState<ComicViewerScreen> {
   @override
   void initState() {
     super.initState();
+    _pageController = PageController();
     SystemChrome.setEnabledSystemUIMode(SystemUiMode.immersiveSticky);
     _pageController.addListener(_updateCurrentPage);
     print(widget.comic.currentReadPage);
     Future(() {
       ref
           .read(comicViewerControllerProvider.notifier)
-          .loadComic(widget.comic.filePath);
+          .loadComic(widget.comic.filePath)
+          .then((_) {
+        // Navegar a la página guardada después de cargar
+        final totalPages =
+            ref.read(comicViewerControllerProvider).value?.length ?? 0;
+        if (totalPages > 0) {
+          final targetPage =
+              (widget.comic.currentReadPage).clamp(0, totalPages - 1);
+          WidgetsBinding.instance.addPostFrameCallback((_) {
+            _pageController.jumpToPage(targetPage);
+          });
+        }
+      });
     });
   }
 
@@ -77,7 +90,7 @@ class _ComicViewerScreenState extends ConsumerState<ComicViewerScreen> {
   void _toggleBookMark() {
     ref
         .read(comicControllerProvider.notifier)
-        .createBookmark(widget.comic.id!, _currentPageIndex);
+        .createBookmark(widget.comic.id!, _currentPageIndex, widget.comic);
   }
 
   void _handleProgressTap(TapDownDetails details, int totalPages) {
@@ -120,6 +133,11 @@ class _ComicViewerScreenState extends ConsumerState<ComicViewerScreen> {
         ),
       ),
     );
+  }
+
+  void _goBack() {
+    _toggleBookMark();
+    Navigator.pop(context);
   }
 
   @override
@@ -282,7 +300,7 @@ class _ComicViewerScreenState extends ConsumerState<ComicViewerScreen> {
               elevation: 0,
               leading: IconButton(
                 icon: const Icon(Icons.arrow_back, color: Colors.white),
-                onPressed: () => Navigator.pop(context),
+                onPressed: _goBack,
               ),
               actions: [
                 IconButton(

@@ -18,4 +18,26 @@ class ComicEntity {
     required this.lastOpened,
     required this.currentReading,
   });
+
+  ComicEntity copyWith({
+    int? id,
+    String? filePath,
+    String? title,
+    int? currentReadPage,
+    int? totalPages,
+    String? picture,
+    String? lastOpened,
+    int? currentReading,
+  }) {
+    return ComicEntity(
+      id: id ?? this.id,
+      filePath: filePath ?? this.filePath,
+      title: title ?? this.title,
+      currentReadPage: currentReadPage ?? this.currentReadPage,
+      totalPages: totalPages ?? this.totalPages,
+      picture: picture ?? this.picture,
+      lastOpened: lastOpened ?? this.lastOpened,
+      currentReading: currentReading ?? this.currentReading,
+    );
+  }
 }
