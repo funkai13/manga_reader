@@ -4,7 +4,12 @@ import 'package:manga_reader/core/theme/theme.dart';
 import 'package:manga_reader/feature/Home/presenter/screen/home_screen.dart';
 
 void main() {
-  runApp(const ProviderScope(child: MyApp()));
+  runApp(
+    ProviderScope(
+      retry: (retryCount, error) => null,
+      child: MyApp(),
+    ),
+  );
 }
 
 class MyApp extends StatelessWidget {

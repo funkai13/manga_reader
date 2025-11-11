@@ -2,7 +2,7 @@ import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 
 class DialogService {
-  final ProviderRef ref;
+  final Ref ref;
 
   DialogService(this.ref);
 

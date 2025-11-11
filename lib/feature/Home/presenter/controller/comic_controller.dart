@@ -7,7 +7,7 @@ import 'package:flutter_riverpod/flutter_riverpod.dart';
 import '../../domain/entity/comic.dart';
 import '../../domain/provider/comic_provider.dart';
 
-class ComicController extends AutoDisposeAsyncNotifier<List<ComicEntity>> {
+class ComicController extends AsyncNotifier<List<ComicEntity>> {
   @override
   FutureOr<List<ComicEntity>> build() async => [];
 
@@ -88,6 +88,6 @@ class ComicController extends AutoDisposeAsyncNotifier<List<ComicEntity>> {
 }
 
 final comicControllerProvider =
-    AutoDisposeAsyncNotifierProvider<ComicController, List<ComicEntity>>(
+    AsyncNotifierProvider<ComicController, List<ComicEntity>>(
   ComicController.new,
 );

@@ -4,7 +4,7 @@ import 'package:flutter_riverpod/flutter_riverpod.dart';
 
 import '../../domain/provider/comic_file_provider.dart';
 
-class ComicViewerController extends AutoDisposeAsyncNotifier<List<File>> {
+class ComicViewerController extends AsyncNotifier<List<File>> {
   @override
   Future<List<File>> build() async => [];
 
@@ -21,6 +21,6 @@ class ComicViewerController extends AutoDisposeAsyncNotifier<List<File>> {
 }
 
 final comicViewerControllerProvider =
-    AutoDisposeAsyncNotifierProvider<ComicViewerController, List<File>>(
+    AsyncNotifierProvider<ComicViewerController, List<File>>(
   ComicViewerController.new,
 );
