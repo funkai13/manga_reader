@@ -13,6 +13,7 @@ class MyApp extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     return MaterialApp(
+      debugShowCheckedModeBanner: false,
       title: 'Manga/Comic Reader',
       theme: AppTheme.lightTheme(context),
       darkTheme: AppTheme.darkTheme(context),

@@ -26,12 +26,15 @@ class _HomeScreenState extends ConsumerState<HomeScreen> {
               onPressed: () async => await ref
                   .read(comicControllerProvider.notifier)
                   .addComic(context),
-              icon: Icon(Icons.add))
+              icon: const Icon(Icons.add))
         ],
       ),
-      drawer: Drawer(),
-      body: ComicsGrid(),
-      bottomNavigationBar: CustomBottomBar(),
+      drawer: const Drawer(),
+      body: Padding(
+        padding: const EdgeInsets.all(8.0),
+        child: const ComicsGrid(),
+      ),
+      bottomNavigationBar: const CustomBottomBar(),
     );
   }
 }

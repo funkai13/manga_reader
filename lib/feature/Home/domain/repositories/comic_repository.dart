@@ -4,4 +4,6 @@ abstract class ComicRepository {
   Future<void> addComic(ComicEntity comic);
 
   Future<List<ComicEntity>> getAllComics();
+
+  Future<void> addBookMark(int id, int bookMark);
 }

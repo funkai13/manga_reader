@@ -28,7 +28,7 @@ class ComicController extends AutoDisposeAsyncNotifier<List<ComicEntity>> {
           final newComic = ComicEntity(
             filePath: filePath,
             title: fileName,
-            currentPage: 0,
+            currentReadPage: 0,
             totalPages: 0,
             picture: '',
             lastOpened: DateTime.now().toIso8601String(),
@@ -58,6 +58,27 @@ class ComicController extends AutoDisposeAsyncNotifier<List<ComicEntity>> {
       final comics = await comicRepository.getAllComics();
       state = AsyncData(comics);
       return comics;
+    } catch (error) {
+      state = AsyncError(error, StackTrace.current);
+      print(error);
+      rethrow;
+    }
+  }
+
+  Future<String> createBookmark(int id, int bookMark, ComicEntity comic) async {
+    final comicRepository = ref.read(comicRepositoryProvider);
+    try {
+      comicRepository.addBookMark(id, bookMark);
+      state = state.whenData((comics) {
+        return comics.map((c) {
+          if (c.id == id) {
+            return c.copyWith(currentReadPage: bookMark);
+          }
+          return c;
+        }).toList();
+      });
+
+      return 'Update success';
     } catch (error) {
       state = AsyncError(error, StackTrace.current);
       print(error);
