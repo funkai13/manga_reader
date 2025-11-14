@@ -1,23 +1,49 @@
 import 'package:flutter/material.dart';
 
+/// Defines the text styles for the application, inspired by a clean, modern design system.
+/// Provides separate text themes for mobile and tablet layouts.
 class AppTypography {
   static const TextTheme mobileTextTheme = TextTheme(
-    displayLarge: TextStyle(fontSize: 24, fontWeight: FontWeight.bold),
-    displayMedium: TextStyle(fontSize: 20, fontWeight: FontWeight.w600),
-    bodyLarge: TextStyle(fontSize: 16),
-    bodyMedium: TextStyle(
-      fontSize: 14,
-    ),
-    labelLarge: TextStyle(fontSize: 18, fontWeight: FontWeight.w500),
+    // Large, prominent titles, for screen headers.
+    displayLarge: TextStyle(fontSize: 34, fontWeight: FontWeight.bold, letterSpacing: 0.4),
+    displayMedium: TextStyle(fontSize: 28, fontWeight: FontWeight.bold, letterSpacing: 0.35),
+    displaySmall: TextStyle(fontSize: 24, fontWeight: FontWeight.bold, letterSpacing: 0.3),
+
+    // Slightly smaller than display styles, for featured text.
+    headlineMedium: TextStyle(fontSize: 22, fontWeight: FontWeight.w600, letterSpacing: 0.25),
+    headlineSmall: TextStyle(fontSize: 20, fontWeight: FontWeight.w600, letterSpacing: 0.2),
+
+    // Standard titles, for components like app bars and dialogs.
+    titleLarge: TextStyle(fontSize: 18, fontWeight: FontWeight.w600, letterSpacing: 0.15),
+
+    // Main body text.
+    bodyLarge: TextStyle(fontSize: 17, fontWeight: FontWeight.normal, letterSpacing: 0.5),
+    bodyMedium: TextStyle(fontSize: 15, fontWeight: FontWeight.normal, letterSpacing: 0.25),
+
+    // For buttons and other interactive elements.
+    labelLarge: TextStyle(fontSize: 16, fontWeight: FontWeight.w500, letterSpacing: 0.5),
+    labelMedium: TextStyle(fontSize: 14, fontWeight: FontWeight.w500, letterSpacing: 0.5),
+
+    // Smaller text, for captions or metadata.
+    bodySmall: TextStyle(fontSize: 13, fontWeight: FontWeight.normal, letterSpacing: 0.4),
   );
 
   static const TextTheme tabletTextTheme = TextTheme(
-    displayLarge: TextStyle(fontSize: 30, fontWeight: FontWeight.bold),
-    displayMedium: TextStyle(fontSize: 26, fontWeight: FontWeight.w600),
-    bodyLarge: TextStyle(fontSize: 20),
-    bodyMedium: TextStyle(
-      fontSize: 18,
-    ),
-    labelLarge: TextStyle(fontSize: 22, fontWeight: FontWeight.w500),
+    displayLarge: TextStyle(fontSize: 40, fontWeight: FontWeight.bold, letterSpacing: 0.4),
+    displayMedium: TextStyle(fontSize: 34, fontWeight: FontWeight.bold, letterSpacing: 0.35),
+    displaySmall: TextStyle(fontSize: 28, fontWeight: FontWeight.bold, letterSpacing: 0.3),
+
+    headlineMedium: TextStyle(fontSize: 26, fontWeight: FontWeight.w600, letterSpacing: 0.25),
+    headlineSmall: TextStyle(fontSize: 24, fontWeight: FontWeight.w600, letterSpacing: 0.2),
+
+    titleLarge: TextStyle(fontSize: 22, fontWeight: FontWeight.w600, letterSpacing: 0.15),
+
+    bodyLarge: TextStyle(fontSize: 19, fontWeight: FontWeight.normal, letterSpacing: 0.5),
+    bodyMedium: TextStyle(fontSize: 17, fontWeight: FontWeight.normal, letterSpacing: 0.25),
+
+    labelLarge: TextStyle(fontSize: 18, fontWeight: FontWeight.w500, letterSpacing: 0.5),
+    labelMedium: TextStyle(fontSize: 16, fontWeight: FontWeight.w500, letterSpacing: 0.5),
+
+    bodySmall: TextStyle(fontSize: 15, fontWeight: FontWeight.normal, letterSpacing: 0.4),
   );
 }

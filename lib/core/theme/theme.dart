@@ -8,19 +8,25 @@ class AppTheme {
   static ThemeData lightTheme(BuildContext context) {
     final textTheme = _getTextTheme(context);
     return ThemeData(
+      brightness: Brightness.light,
       primaryColor: AppColorsLight.primaryColor,
       scaffoldBackgroundColor: AppColorsLight.backgroundColor,
+      cardColor: AppColorsLight.cardColor,
+      dividerColor: AppColorsLight.dividerColor,
       colorScheme: const ColorScheme.light(
-        primary: AppColorsLight.buttonColor,
+        primary: AppColorsLight.accentColor,
         secondary: AppColorsLight.accentColor,
         surface: AppColorsLight.cardColor,
         onPrimary: Colors.white,
-        onSurface: AppColorsLight.textColor,
+        // Text on accent color
+        onSurface: AppColorsLight.textColor, // Main text color
       ),
-      textTheme: textTheme,
+      textTheme: textTheme.apply(
+          bodyColor: AppColorsLight.textColor,
+          displayColor: AppColorsLight.textColor),
       textButtonTheme: TextButtonThemeData(
         style: TextButton.styleFrom(
-          foregroundColor: AppColorsLight.buttonColor,
+          foregroundColor: AppColorsLight.accentColor,
         ),
       ),
       elevatedButtonTheme: ElevatedButtonThemeData(
@@ -31,8 +37,34 @@ class AppTheme {
       ),
       outlinedButtonTheme: OutlinedButtonThemeData(
         style: OutlinedButton.styleFrom(
-          foregroundColor: AppColorsLight.buttonColor,
+          foregroundColor: AppColorsLight.accentColor,
+          side: const BorderSide(color: AppColorsLight.accentColor, width: 1.5),
         ),
+      ),
+      appBarTheme: const AppBarTheme(
+        backgroundColor: Colors.transparent,
+        elevation: 0,
+        iconTheme: IconThemeData(color: AppColorsLight.textColor),
+        titleTextStyle: TextStyle(
+            color: AppColorsLight.textColor,
+            fontSize: 20,
+            fontWeight: FontWeight.w600),
+      ),
+      cardTheme: CardThemeData(
+        elevation: 0.2,
+        color: AppColorsLight.cardColor,
+        shape: RoundedRectangleBorder(
+          borderRadius: BorderRadius.circular(12),
+        ),
+      ),
+      dividerTheme: const DividerThemeData(
+        color: AppColorsLight.dividerColor,
+        thickness: 0.5,
+      ),
+      textSelectionTheme: TextSelectionThemeData(
+        cursorColor: AppColorsLight.accentColor,
+        selectionColor: AppColorsLight.accentColor.withOpacity(0.3),
+        selectionHandleColor: AppColorsLight.accentColor,
       ),
     );
   }
@@ -40,18 +72,25 @@ class AppTheme {
   static ThemeData darkTheme(BuildContext context) {
     final textTheme = _getTextTheme(context);
     return ThemeData(
+      brightness: Brightness.dark,
       primaryColor: AppColorsDark.primaryColor,
       scaffoldBackgroundColor: AppColorsDark.backgroundColor,
-      textTheme: textTheme,
+      cardColor: AppColorsDark.cardColor,
+      dividerColor: AppColorsDark.dividerColor,
       colorScheme: const ColorScheme.dark(
-        primary: AppColorsDark.buttonColor,
+        primary: AppColorsDark.accentColor,
         secondary: AppColorsDark.accentColor,
         surface: AppColorsDark.cardColor,
-        onSurface: AppColorsDark.textColor,
+        onPrimary: AppColorsDark.primaryColor,
+        // Text on accent color
+        onSurface: AppColorsDark.textColor, // Main text color
       ),
+      textTheme: textTheme.apply(
+          bodyColor: AppColorsDark.textColor,
+          displayColor: AppColorsDark.textColor),
       textButtonTheme: TextButtonThemeData(
         style: TextButton.styleFrom(
-          foregroundColor: AppColorsDark.buttonColor,
+          foregroundColor: AppColorsDark.accentColor,
         ),
       ),
       elevatedButtonTheme: ElevatedButtonThemeData(
@@ -62,8 +101,34 @@ class AppTheme {
       ),
       outlinedButtonTheme: OutlinedButtonThemeData(
         style: OutlinedButton.styleFrom(
-          foregroundColor: AppColorsDark.buttonColor,
+          foregroundColor: AppColorsDark.accentColor,
+          side: const BorderSide(color: AppColorsDark.accentColor, width: 1.5),
         ),
+      ),
+      appBarTheme: const AppBarTheme(
+        backgroundColor: Colors.transparent,
+        elevation: 0,
+        iconTheme: IconThemeData(color: AppColorsDark.textColor),
+        titleTextStyle: TextStyle(
+            color: AppColorsDark.textColor,
+            fontSize: 20,
+            fontWeight: FontWeight.w600),
+      ),
+      cardTheme: CardThemeData(
+        elevation: 0,
+        color: AppColorsDark.cardColor,
+        shape: RoundedRectangleBorder(
+          borderRadius: BorderRadius.circular(12),
+        ),
+      ),
+      dividerTheme: const DividerThemeData(
+        color: AppColorsDark.dividerColor,
+        thickness: 0.5,
+      ),
+      textSelectionTheme: TextSelectionThemeData(
+        cursorColor: AppColorsDark.accentColor,
+        selectionColor: AppColorsDark.accentColor.withOpacity(0.3),
+        selectionHandleColor: AppColorsDark.accentColor,
       ),
     );
   }

@@ -2,17 +2,28 @@ import 'dart:io';
 
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 
-import '../../domain/provider/comic_file_provider.dart';
-
 class ComicViewerController extends AsyncNotifier<List<File>> {
   @override
   Future<List<File>> build() async => [];
 
-  Future<void> loadComic(String filePath) async {
-    final comicViewerRepository = ref.read(extractComicImagesUseCaseProvider);
+  Future<void> loadComic(String imagesPath) async {
     state = const AsyncLoading();
+
     try {
-      final images = await comicViewerRepository(filePath);
+      final dir = Directory(imagesPath);
+      print(imagesPath);
+     
+      final images = dir
+          .listSync()
+          .whereType<File>()
+          .where((file) =>
+              file.path.toLowerCase().endsWith('.jpg') ||
+              file.path.toLowerCase().endsWith('.jpeg') ||
+              file.path.toLowerCase().endsWith('.png'))
+          .toList();
+
+      images.sort((a, b) => a.path.compareTo(b.path));
+
       state = AsyncData(images);
     } catch (e) {
       state = AsyncError(e, StackTrace.current);

@@ -9,7 +9,11 @@ import '../../domain/provider/comic_provider.dart';
 
 class ComicController extends AsyncNotifier<List<ComicEntity>> {
   @override
-  FutureOr<List<ComicEntity>> build() async => [];
+  FutureOr<List<ComicEntity>> build() async {
+    final comicRepository = ref.read(comicRepositoryProvider);
+    final comics = await comicRepository.getAllComics();
+    return comics;
+  }
 
   Future<void> addComic(BuildContext context) async {
     final comicRepository = ref.read(comicRepositoryProvider);
@@ -25,7 +29,7 @@ class ComicController extends AsyncNotifier<List<ComicEntity>> {
 
       if (extension == 'cbr' || extension == 'cbz') {
         if (filePath != null) {
-          final newComic = ComicEntity(
+          final newComicEntity = ComicEntity(
             filePath: filePath,
             title: fileName,
             currentReadPage: 0,
@@ -33,11 +37,17 @@ class ComicController extends AsyncNotifier<List<ComicEntity>> {
             picture: '',
             lastOpened: DateTime.now().toIso8601String(),
             currentReading: 0,
+            imagesPath: '',
+            isReading: '',
+            isFavorite: '',
+            rating: '',
+            bookMarks: '',
+            isCompleted: '',
           );
-          await comicRepository.addComic(newComic);
-          print('Inserting comic: $newComic, ');
+          final createdComic = await comicRepository.addComic(newComicEntity);
+          print('Inserting comic: $newComicEntity, ');
 
-          state = AsyncData([...state.value ?? [], newComic]);
+          state = AsyncData([...state.value ?? [], createdComic]);
         }
       } else {
         ScaffoldMessenger.of(context).showSnackBar(

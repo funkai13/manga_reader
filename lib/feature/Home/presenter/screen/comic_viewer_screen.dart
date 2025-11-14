@@ -39,7 +39,7 @@ class _ComicViewerScreenState extends ConsumerState<ComicViewerScreen> {
     Future(() {
       ref
           .read(comicViewerControllerProvider.notifier)
-          .loadComic(widget.comic.filePath)
+          .loadComic(widget.comic.imagesPath)
           .then((_) {
         // Navegar a la página guardada después de cargar
         final totalPages =

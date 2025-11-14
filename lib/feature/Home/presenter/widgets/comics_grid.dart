@@ -1,38 +1,24 @@
-import 'dart:io';
-
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
-import 'package:manga_reader/feature/Home/domain/entity/comic.dart';
 import 'package:manga_reader/feature/Home/presenter/controller/comic_controller.dart';
 
 import '../../../../core/widgets/generic_grid.dart';
-import '../screen/comic_viewer_screen.dart';
+import 'comic_card.dart';
 
-class ComicsGrid extends ConsumerStatefulWidget {
+class ComicsGrid extends ConsumerWidget {
   const ComicsGrid({super.key});
 
   @override
-  ConsumerState<ComicsGrid> createState() => _ComicsGridState();
-}
+  Widget build(BuildContext context, WidgetRef ref) {
+    Future<void> fetchComics() async {
+      await ref.read(comicControllerProvider.notifier).getAllComics();
+    }
 
-class _ComicsGridState extends ConsumerState<ComicsGrid> {
-  @override
-  void initState() {
-    super.initState();
-    _fetchComics();
-  }
-
-  Future<void> _fetchComics() async {
-    await ref.read(comicControllerProvider.notifier).getAllComics();
-  }
-
-  @override
-  Widget build(BuildContext context) {
     final asyncComics = ref.watch(comicControllerProvider);
     return asyncComics.when(
       data: (comics) => RefreshIndicator(
           onRefresh: () async {
-            await _fetchComics();
+            await fetchComics();
           },
           child: GenericGrid(
             items: comics,
@@ -52,7 +38,7 @@ class _ComicsGridState extends ConsumerState<ComicsGrid> {
   }
 }
 
-class ComicCard extends StatelessWidget {
+/*class ComicCard extends StatelessWidget {
   final ComicEntity comic;
 
   const ComicCard({super.key, required this.comic});
@@ -68,8 +54,22 @@ class ComicCard extends StatelessWidget {
           ),
         );
       },
-      child: Card(
-        shape: RoundedRectangleBorder(
+      child: Column(
+        crossAxisAlignment: CrossAxisAlignment.stretch,
+        children: [
+          Expanded(
+              child: comic.picture.isNotEmpty
+                  ? Image.file(
+                      File(comic.picture),
+                      fit: BoxFit.cover,
+                    )
+                  : Container(
+                      color: Colors.grey[300],
+                    ))
+        ],
+      ),
+      */ /* child: Card(
+        shape: RoundedSuperellipseBorder(
           borderRadius: BorderRadius.circular(10),
         ),
         elevation: 5,
@@ -105,7 +105,7 @@ class ComicCard extends StatelessWidget {
             ),
           ],
         ),
-      ),
+      ),*/ /*
     );
   }
-}
+}*/

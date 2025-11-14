@@ -7,6 +7,12 @@ class ComicEntity {
   final int totalPages;
   final String lastOpened;
   final int currentReading;
+  final String imagesPath;
+  final String isReading;
+  final String isFavorite;
+  final String rating;
+  final String bookMarks;
+  final String isCompleted;
 
   ComicEntity({
     this.id,
@@ -17,6 +23,12 @@ class ComicEntity {
     required this.totalPages,
     required this.lastOpened,
     required this.currentReading,
+    required this.imagesPath,
+    required this.isReading,
+    required this.isFavorite,
+    required this.rating,
+    required this.bookMarks,
+    required this.isCompleted,
   });
 
   ComicEntity copyWith({
@@ -28,6 +40,12 @@ class ComicEntity {
     String? picture,
     String? lastOpened,
     int? currentReading,
+    String? imagesPath,
+    String? isReading,
+    String? isFavorite,
+    String? rating,
+    String? bookMarks,
+    String? isCompleted,
   }) {
     return ComicEntity(
       id: id ?? this.id,
@@ -38,6 +56,12 @@ class ComicEntity {
       picture: picture ?? this.picture,
       lastOpened: lastOpened ?? this.lastOpened,
       currentReading: currentReading ?? this.currentReading,
+      imagesPath: imagesPath ?? this.imagesPath,
+      isReading: isReading ?? this.isReading,
+      isFavorite: isFavorite ?? this.isFavorite,
+      rating: rating ?? this.rating,
+      bookMarks: bookMarks ?? this.bookMarks,
+      isCompleted: isCompleted ?? this.isCompleted,
     );
   }
 }

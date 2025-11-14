@@ -37,12 +37,12 @@ class ComicDatabase {
           ${ComicFields.currentPage} ${ComicFields.intType},
           ${ComicFields.totalPages} ${ComicFields.intType},
           ${ComicFields.lastOpened} ${ComicFields.intType},
-          ${ComicFields.currentReading} ${ComicFields.intType}
-          ${ComicFields.bookMarks} ${ComicFields.textType}
-          ${ComicFields.isFavorite} ${ComicFields.intType}      
-          ${ComicFields.imagesPath} ${ComicFields.textType} 
-          ${ComicFields.rating} ${ComicFields.intType}
-          ${ComicFields.isReading} ${ComicFields.textType}
+          ${ComicFields.currentReading} ${ComicFields.intType},
+          ${ComicFields.bookMarks} ${ComicFields.textType},
+          ${ComicFields.isFavorite} ${ComicFields.intType},
+          ${ComicFields.imagesPath} ${ComicFields.textType},
+          ${ComicFields.rating} ${ComicFields.intType},
+          ${ComicFields.isReading} ${ComicFields.textType},
           ${ComicFields.isCompleted} ${ComicFields.textType}
         )
       ''');
@@ -89,6 +89,7 @@ class ComicDatabase {
   Future<void> updateComic({
     required int id,
     String? imagesPath,
+    String? picture,
     String? filePath,
     String? title,
     int? totalPages,
@@ -98,6 +99,7 @@ class ComicDatabase {
     if (imagesPath != null) values[ComicFields.imagesPath] = imagesPath;
     if (filePath != null) values[ComicFields.filePath] = filePath;
     if (title != null) values[ComicFields.title] = title;
+    if (picture != null) values[ComicFields.picture] = picture;
     if (totalPages != null) values[ComicFields.totalPages] = totalPages;
     if (values.isNotEmpty) {
       await db.update(
