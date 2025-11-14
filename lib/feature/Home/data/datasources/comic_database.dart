@@ -22,37 +22,127 @@ class ComicDatabase {
     final path = '$databasePath/$filePath';
     return await openDatabase(
       path,
-      version: 1,
+      version: 2,
       onCreate: _createDatabase,
+      onUpgrade: _upgradeDatabase,
     );
   }
 
-  Future _createDatabase(Database db, int version) async {
+  Future<void> _createDatabase(Database db, int version) async {
     await db.execute('''
         CREATE TABLE ${ComicFields.tableName} (
           ${ComicFields.id} ${ComicFields.idType},
           ${ComicFields.filePath} ${ComicFields.textType},
           ${ComicFields.title} ${ComicFields.textType},
-          ${ComicFields.picture} TEXT,
-          ${ComicFields.currentPage} ${ComicFields.intType},
-          ${ComicFields.totalPages} ${ComicFields.intType},
-          ${ComicFields.lastOpened} ${ComicFields.intType},
-          ${ComicFields.currentReading} ${ComicFields.intType},
-          ${ComicFields.bookMarks} ${ComicFields.textType},
-          ${ComicFields.isFavorite} ${ComicFields.intType},
+          ${ComicFields.picture} ${ComicFields.nullableTextType},
+          ${ComicFields.currentPage} ${ComicFields.intType} DEFAULT 0,
+          ${ComicFields.totalPages} ${ComicFields.intType} DEFAULT 0,
+          ${ComicFields.lastOpened} ${ComicFields.nullableTextType},
+          ${ComicFields.currentReading} ${ComicFields.intType} DEFAULT 0,
           ${ComicFields.imagesPath} ${ComicFields.textType},
-          ${ComicFields.rating} ${ComicFields.intType},
-          ${ComicFields.isReading} ${ComicFields.textType},
-          ${ComicFields.isCompleted} ${ComicFields.textType}
+          ${ComicFields.isReading} ${ComicFields.booleanType},
+          ${ComicFields.isFavorite} ${ComicFields.booleanType},
+          ${ComicFields.bookMarks} ${ComicFields.nullableTextType} DEFAULT '',
+          ${ComicFields.rating} ${ComicFields.nullableIntType} DEFAULT 0,
+          ${ComicFields.isCompleted} ${ComicFields.booleanType}
         )
       ''');
   }
 
+  Future<void> _upgradeDatabase(
+      Database db, int oldVersion, int newVersion) async {
+    if (oldVersion < 2) {
+      try {
+        await db.execute('''
+          UPDATE ${ComicFields.tableName}
+          SET ${ComicFields.isReading} = CASE 
+            WHEN ${ComicFields.isReading} = '1' OR ${ComicFields.isReading} = 'true' THEN 1 
+            ELSE 0 
+          END
+        ''');
+
+        await db.execute('''
+          UPDATE ${ComicFields.tableName}
+          SET ${ComicFields.isCompleted} = CASE 
+            WHEN ${ComicFields.isCompleted} = '1' OR ${ComicFields.isCompleted} = 'true' THEN 1 
+            ELSE 0 
+          END
+        ''');
+
+        await db.execute('''
+          UPDATE ${ComicFields.tableName}
+          SET ${ComicFields.isFavorite} = CASE 
+            WHEN ${ComicFields.isFavorite} > 0 THEN 1 
+            ELSE 0 
+          END
+        ''');
+
+        await db.execute('''
+          CREATE TABLE ${ComicFields.tableName}_new (
+            ${ComicFields.id} ${ComicFields.idType},
+            ${ComicFields.filePath} ${ComicFields.textType},
+            ${ComicFields.title} ${ComicFields.textType},
+            ${ComicFields.picture} ${ComicFields.nullableTextType},
+            ${ComicFields.currentPage} ${ComicFields.intType} DEFAULT 0,
+            ${ComicFields.totalPages} ${ComicFields.intType} DEFAULT 0,
+            ${ComicFields.lastOpened} ${ComicFields.nullableTextType},
+            ${ComicFields.currentReading} ${ComicFields.intType} DEFAULT 0,
+            ${ComicFields.imagesPath} ${ComicFields.textType},
+            ${ComicFields.isReading} ${ComicFields.booleanType},
+            ${ComicFields.isFavorite} ${ComicFields.booleanType},
+            ${ComicFields.bookMarks} ${ComicFields.nullableTextType} DEFAULT '',
+            ${ComicFields.rating} ${ComicFields.nullableIntType} DEFAULT 0,
+            ${ComicFields.isCompleted} ${ComicFields.booleanType}
+          )
+        ''');
+
+        await db.execute('''
+          INSERT INTO ${ComicFields.tableName}_new (
+            ${ComicFields.id},
+            ${ComicFields.filePath},
+            ${ComicFields.title},
+            ${ComicFields.picture},
+            ${ComicFields.currentPage},
+            ${ComicFields.totalPages},
+            ${ComicFields.lastOpened},
+            ${ComicFields.currentReading},
+            ${ComicFields.imagesPath},
+            ${ComicFields.isReading},
+            ${ComicFields.isFavorite},
+            ${ComicFields.bookMarks},
+            ${ComicFields.rating},
+            ${ComicFields.isCompleted}
+          )
+          SELECT 
+            ${ComicFields.id},
+            ${ComicFields.filePath},
+            ${ComicFields.title},
+            ${ComicFields.picture},
+            ${ComicFields.currentPage},
+            ${ComicFields.totalPages},
+            ${ComicFields.lastOpened},
+            ${ComicFields.currentReading},
+            ${ComicFields.imagesPath},
+            ${ComicFields.isReading},
+            ${ComicFields.isFavorite},
+            ${ComicFields.bookMarks},
+            ${ComicFields.rating},
+            ${ComicFields.isCompleted}
+          FROM ${ComicFields.tableName}
+        ''');
+
+        await db.execute('DROP TABLE ${ComicFields.tableName}');
+        await db.execute(
+            'ALTER TABLE ${ComicFields.tableName}_new RENAME TO ${ComicFields.tableName}');
+      } catch (e) {
+        rethrow;
+      }
+    }
+  }
+
   Future<int> addComic(ComicModel comic) async {
     final db = await database;
-    int id = await db.insert('comics', comic.toMap());
-    final result = await db.query('comics');
-    return id;
+    return await db.insert(ComicFields.tableName, comic.toMap());
   }
 
   Future<List<ComicModel>> fetchAllComics() async {
@@ -63,27 +153,12 @@ class ComicDatabase {
 
   Future<void> updateBookmark(int id, int currentPage) async {
     final db = await database;
-
     await db.update(
-      'comics',
-      {'currentPage': currentPage},
-      where: 'id = ?',
+      ComicFields.tableName,
+      {ComicFields.currentPage: currentPage},
+      where: '${ComicFields.id} = ?',
       whereArgs: [id],
     );
-
-    final result = await db.query(
-      'comics',
-      columns: ['id', 'currentPage'],
-      where: 'id = ?',
-      whereArgs: [id],
-    );
-
-    if (result.isNotEmpty) {
-      print(
-          "Comic ID: ${result.first['id']} - Current Page actualizado: ${result.first['currentPage']}");
-    } else {
-      print("No se encontró el cómic con ID: $id");
-    }
   }
 
   Future<void> updateComic({
@@ -93,14 +168,24 @@ class ComicDatabase {
     String? filePath,
     String? title,
     int? totalPages,
+    bool? isReading,
+    bool? isCompleted,
   }) async {
     final db = await database;
     final Map<String, Object?> values = {};
+
     if (imagesPath != null) values[ComicFields.imagesPath] = imagesPath;
     if (filePath != null) values[ComicFields.filePath] = filePath;
     if (title != null) values[ComicFields.title] = title;
     if (picture != null) values[ComicFields.picture] = picture;
     if (totalPages != null) values[ComicFields.totalPages] = totalPages;
+    if (isReading != null) {
+      values[ComicFields.isReading] = isReading ? 1 : 0;
+    }
+    if (isCompleted != null) {
+      values[ComicFields.isCompleted] = isCompleted ? 1 : 0;
+    }
+
     if (values.isNotEmpty) {
       await db.update(
         ComicFields.tableName,
