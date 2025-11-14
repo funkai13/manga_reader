@@ -85,9 +85,10 @@ class ComicRepositoryImpl implements ComicRepository {
 
   Future<List<File>> _extractComicToFolder(
       String archivePath, String outputDir) async {
-    final outDir = Directory(outputDir);
-    final extracted = <File>[];
-    int index = 0;
+    final tempOutput = Directory("$outputDir/temp_extract");
+    if (!tempOutput.existsSync()) tempOutput.createSync(recursive: true);
+
+    final rawExtracted = <File>[];
 
     if (archivePath.toLowerCase().endsWith('.cbz')) {
       final file = File(archivePath);
@@ -96,22 +97,25 @@ class ComicRepositoryImpl implements ComicRepository {
 
       for (final ent in archive) {
         if (!ent.isFile) continue;
+
         final nameLower = ent.name.toLowerCase();
         if (!nameLower.endsWith('.jpg') &&
             !nameLower.endsWith('.jpeg') &&
             !nameLower.endsWith('.png')) {
           continue;
         }
-        final outFile = File(p.join(outputDir,
-            '${(index + 1).toString().padLeft(4, '0')}${p.extension(ent.name).toLowerCase()}'));
+
+        final outFile = File(p.join(tempOutput.path, ent.name));
+        outFile.createSync(recursive: true);
         outFile.writeAsBytesSync(ent.content as List<int>);
-        extracted.add(outFile);
-        index++;
+        rawExtracted.add(outFile);
       }
     } else if (archivePath.toLowerCase().endsWith('.cbr')) {
       final tempDir = Directory.systemTemp.createTempSync();
+
       try {
         await UnrarFile.extract_rar(archivePath, tempDir.path);
+
         final files =
             tempDir.listSync(recursive: true).whereType<File>().where((f) {
           final l = f.path.toLowerCase();
@@ -120,24 +124,65 @@ class ComicRepositoryImpl implements ComicRepository {
               l.endsWith('.png');
         }).toList();
 
-        files.sort((a, b) => a.path.compareTo(b.path));
-
         for (final f in files) {
-          final ext = p.extension(f.path).toLowerCase();
-          final dest = File(p.join(
-              outputDir, '${(index + 1).toString().padLeft(4, '0')}$ext'));
+          final dest = File(p.join(tempOutput.path, p.basename(f.path)));
           await f.copy(dest.path);
-          extracted.add(dest);
-          index++;
+          rawExtracted.add(dest);
         }
       } finally {
-        if (tempDir.existsSync()) tempDir.deleteSync(recursive: true);
+        tempDir.deleteSync(recursive: true);
       }
-    } else {
-      throw Exception('Unsupported file format');
     }
 
-    return extracted;
+    rawExtracted.sort((a, b) => _naturalSort(a.path, b.path));
+
+    for (int i = 0; i < rawExtracted.length; i++) {
+      print("   ${i + 1}. ${rawExtracted[i].path}");
+    }
+
+    final finalFiles = <File>[];
+    int index = 1;
+
+    for (final original in rawExtracted) {
+      final ext = p.extension(original.path).toLowerCase();
+      final newPath = p.join(
+        outputDir,
+        index.toString().padLeft(4, '0') + ext,
+      );
+
+      final f = File(original.path).renameSync(newPath);
+      finalFiles.add(f);
+
+      index++;
+    }
+
+    if (tempOutput.existsSync()) tempOutput.deleteSync(recursive: true);
+
+    return finalFiles;
+  }
+
+  int _naturalSort(String a, String b) {
+    final regex = RegExp(r'(\d+)|(\D+)');
+    final aMatches = regex.allMatches(a).map((m) => m.group(0)!).toList();
+    final bMatches = regex.allMatches(b).map((m) => m.group(0)!).toList();
+
+    for (int i = 0; i < aMatches.length && i < bMatches.length; i++) {
+      final aPart = aMatches[i];
+      final bPart = bMatches[i];
+
+      final aNum = int.tryParse(aPart);
+      final bNum = int.tryParse(bPart);
+
+      if (aNum != null && bNum != null) {
+        final diff = aNum.compareTo(bNum);
+        if (diff != 0) return diff;
+      } else {
+        final diff = aPart.compareTo(bPart);
+        if (diff != 0) return diff;
+      }
+    }
+
+    return aMatches.length.compareTo(bMatches.length);
   }
 
   @override

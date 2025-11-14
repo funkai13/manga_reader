@@ -12,7 +12,7 @@ class ComicViewerController extends AsyncNotifier<List<File>> {
     try {
       final dir = Directory(imagesPath);
       print(imagesPath);
-     
+
       final images = dir
           .listSync()
           .whereType<File>()
@@ -21,8 +21,6 @@ class ComicViewerController extends AsyncNotifier<List<File>> {
               file.path.toLowerCase().endsWith('.jpeg') ||
               file.path.toLowerCase().endsWith('.png'))
           .toList();
-
-      images.sort((a, b) => a.path.compareTo(b.path));
 
       state = AsyncData(images);
     } catch (e) {
