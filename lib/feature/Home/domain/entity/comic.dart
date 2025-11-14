@@ -8,11 +8,11 @@ class ComicEntity {
   final String lastOpened;
   final int currentReading;
   final String imagesPath;
-  final String isReading;
-  final String isFavorite;
-  final String rating;
+  final bool isReading;
+  final bool isFavorite;
+  final int? rating;
   final String bookMarks;
-  final String isCompleted;
+  final bool isCompleted;
 
   ComicEntity({
     this.id,
@@ -26,7 +26,7 @@ class ComicEntity {
     required this.imagesPath,
     required this.isReading,
     required this.isFavorite,
-    required this.rating,
+    this.rating,
     required this.bookMarks,
     required this.isCompleted,
   });
@@ -41,11 +41,11 @@ class ComicEntity {
     String? lastOpened,
     int? currentReading,
     String? imagesPath,
-    String? isReading,
-    String? isFavorite,
-    String? rating,
+    bool? isReading,
+    bool? isFavorite,
+    int? rating,
     String? bookMarks,
-    String? isCompleted,
+    bool? isCompleted,
   }) {
     return ComicEntity(
       id: id ?? this.id,
