@@ -38,6 +38,12 @@ class ComicDatabase {
         ${ComicFields.totalPages} ${ComicFields.intType},
         ${ComicFields.lastOpened} ${ComicFields.intType},
         ${ComicFields.currentReading} ${ComicFields.intType}
+        ${ComicFields.bookMarks} ${ComicFields.textType}
+        ${ComicFields.isFavorite} ${ComicFields.intType}      
+        ${ComicFields.imagesPath} ${ComicFields.textType} 
+        ${ComicFields.rating} ${ComicFields.intType}
+        ${ComicFields.isReading} ${ComicFields.textType}
+        ${ComicFields.isCompleted} ${ComicFields.textType}
       )
     ''');
   }
@@ -47,7 +53,6 @@ class ComicDatabase {
 
     int id = await db.insert('comics', comic.toMap());
     final result = await db.query('comics');
-    print(result); // Aquí puedes ver si el id se generó correctamente
 
     return id;
   }
@@ -63,12 +68,11 @@ class ComicDatabase {
 
     await db.update(
       'comics',
-      {'currentPage': currentPage}, // Solo actualiza currentPage
+      {'currentPage': currentPage},
       where: 'id = ?',
-      whereArgs: [id], // Parámetro seguro para evitar inyección SQL
+      whereArgs: [id],
     );
 
-    // Verificar si la actualización fue exitosa
     final result = await db.query(
       'comics',
       columns: ['id', 'currentPage'],

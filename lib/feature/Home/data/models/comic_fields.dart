@@ -1,14 +1,20 @@
 class ComicFields {
-  static const String tableName = 'comics';
-  static const String idType = 'INTEGER PRIMARY KEY AUTOINCREMENT';
-  static const String textType = 'TEXT NOT NULL';
-  static const String intType = 'INTEGER NOT NULL';
-  static const String id = 'id';
-  static const String filePath = 'filePath';
-  static const String title = 'title';
-  static const String picture = 'picture';
-  static const String currentPage = 'currentPage';
-  static const String totalPages = 'totalPages';
-  static const String lastOpened = 'lastOpened';
-  static const String currentReading = 'currentReading';
+  static const tableName = 'comics';
+  static const idType = 'INTEGER PRIMARY KEY AUTOINCREMENT';
+  static const textType = 'TEXT NOT NULL';
+  static const intType = 'INTEGER NOT NULL';
+  static const id = '_id';
+  static const filePath = 'filePath';
+  static const title = 'title';
+  static const picture = 'picture';
+  static const currentPage = 'currentPage';
+  static const totalPages = 'totalPages';
+  static const lastOpened = 'lastOpened';
+  static const currentReading = 'currentReading';
+  static const imagesPath = 'imagesPath';
+  static const isReading = 'isReading';
+  static const isFavorite = 'isFavorite';
+  static const bookMarks = 'bookMarks';
+  static const rating = 'rating';
+  static const isCompleted = "isCompleted";
 }
