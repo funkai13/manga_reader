@@ -38,11 +38,11 @@ class ComicController extends AsyncNotifier<List<ComicEntity>> {
             lastOpened: DateTime.now().toIso8601String(),
             currentReading: 0,
             imagesPath: '',
-            isReading: '',
-            isFavorite: '',
-            rating: '',
+            isReading: false,
+            isFavorite: false,
+            rating: null,
             bookMarks: '',
-            isCompleted: '',
+            isCompleted: false,
           );
           final createdComic = await comicRepository.addComic(newComicEntity);
           print('Inserting comic: $newComicEntity, ');
@@ -92,6 +92,25 @@ class ComicController extends AsyncNotifier<List<ComicEntity>> {
     } catch (error) {
       state = AsyncError(error, StackTrace.current);
       print(error);
+      rethrow;
+    }
+  }
+
+  Future<void> markAsReading(int id) async {
+    final comicRepository = ref.read(comicRepositoryProvider);
+    try {
+      await comicRepository.startReadingComic(id);
+
+      state = state.whenData((comics) {
+        return comics.map((c) {
+          if (c.id == id && !c.isReading) {
+            return c.copyWith(isReading: true);
+          }
+          return c;
+        }).toList();
+      });
+    } catch (error) {
+      print('Error al marcar como leyendo: $error');
       rethrow;
     }
   }

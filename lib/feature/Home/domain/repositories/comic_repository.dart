@@ -6,4 +6,6 @@ abstract class ComicRepository {
   Future<List<ComicEntity>> getAllComics();
 
   Future<void> addBookMark(int id, int bookMark);
+
+  Future<void> startReadingComic(int id);
 }

@@ -212,4 +212,9 @@ class ComicRepositoryImpl implements ComicRepository {
   Future<void> addBookMark(int id, int bookmark) async {
     await datasource.updateBookmark(id, bookmark);
   }
+
+  @override
+  Future<void> startReadingComic(int id) async {
+    await datasource.updateComic(id: id, isReading: true);
+  }
 }
