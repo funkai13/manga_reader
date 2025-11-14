@@ -18,8 +18,7 @@ class AppTheme {
         secondary: AppColorsLight.accentColor,
         surface: AppColorsLight.cardColor,
         onPrimary: Colors.white,
-        // Text on accent color
-        onSurface: AppColorsLight.textColor, // Main text color
+        onSurface: AppColorsLight.textColor,
       ),
       textTheme: textTheme.apply(
           bodyColor: AppColorsLight.textColor,
@@ -82,8 +81,7 @@ class AppTheme {
         secondary: AppColorsDark.accentColor,
         surface: AppColorsDark.cardColor,
         onPrimary: AppColorsDark.primaryColor,
-        // Text on accent color
-        onSurface: AppColorsDark.textColor, // Main text color
+        onSurface: AppColorsDark.textColor,
       ),
       textTheme: textTheme.apply(
           bodyColor: AppColorsDark.textColor,
