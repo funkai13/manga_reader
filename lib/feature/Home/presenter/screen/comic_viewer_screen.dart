@@ -39,9 +39,8 @@ class _ComicViewerScreenState extends ConsumerState<ComicViewerScreen> {
     Future(() {
       ref
           .read(comicViewerControllerProvider.notifier)
-          .loadComic(widget.comic.imagesPath)
+          .loadComic(widget.comic.imagesPath, widget.comic.id!)
           .then((_) {
-        // Navegar a la página guardada después de cargar
         final totalPages =
             ref.read(comicViewerControllerProvider).value?.length ?? 0;
         if (totalPages > 0) {
@@ -194,7 +193,6 @@ class _ComicViewerScreenState extends ConsumerState<ComicViewerScreen> {
           ),
           itemCount: images.length,
           itemBuilder: (context, index) {
-            // Calcular índice real según modo manga
             final adjustedIndex = _mangaMode ? totalPages - index - 1 : index;
             final isCurrentPage = _currentPageIndex == adjustedIndex;
 
@@ -202,7 +200,7 @@ class _ComicViewerScreenState extends ConsumerState<ComicViewerScreen> {
               onTap: () {
                 Navigator.pop(context);
                 _pageController.animateToPage(
-                  adjustedIndex, // Usar índice ajustado
+                  adjustedIndex,
                   duration: const Duration(milliseconds: 300),
                   curve: Curves.easeInOut,
                 );
@@ -210,7 +208,6 @@ class _ComicViewerScreenState extends ConsumerState<ComicViewerScreen> {
               child: Stack(
                 fit: StackFit.expand,
                 children: [
-                  // Imagen ajustada al modo manga
                   Image.file(
                     images[adjustedIndex],
                     fit: BoxFit.cover,
@@ -229,7 +226,6 @@ class _ComicViewerScreenState extends ConsumerState<ComicViewerScreen> {
                       ),
                     ),
 
-                  // Fondo degradado
                   Container(
                     decoration: BoxDecoration(
                       gradient: LinearGradient(
@@ -245,10 +241,9 @@ class _ComicViewerScreenState extends ConsumerState<ComicViewerScreen> {
                     ),
                   ),
 
-                  // Número de página (corregido para modo manga)
                   Center(
                     child: Text(
-                      '${adjustedIndex + 1}', // Mostrar número real
+                      '${adjustedIndex + 1}',
                       style: const TextStyle(
                         fontSize: 26,
                         fontWeight: FontWeight.bold,
@@ -311,7 +306,6 @@ class _ComicViewerScreenState extends ConsumerState<ComicViewerScreen> {
                 ),
                 IconButton(
                   icon: const Icon(Icons.list, color: Colors.white),
-                  // Nuevo botón selector
                   onPressed: () => _showPageSelector(totalPages),
                 ),
                 IconButton(
@@ -415,7 +409,6 @@ class _ComicViewerScreenState extends ConsumerState<ComicViewerScreen> {
         controller: _pageController,
         scrollDirection: Axis.horizontal,
         reverse: _mangaMode,
-        // Invierte dirección para manga
         physics: _enablePageView
             ? const PageScrollPhysics()
             : const NeverScrollableScrollPhysics(),

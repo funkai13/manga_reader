@@ -1,6 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:manga_reader/feature/Home/presenter/controller/comic_controller.dart';
+import 'package:manga_reader/feature/Home/presenter/helpers/comic_selectors.dart';
 import 'package:manga_reader/feature/Home/presenter/widgets/comics_carousel.dart';
 
 import '../widgets/emtpy_comics_screen.dart';
@@ -11,6 +12,9 @@ class HomeScreen extends ConsumerWidget {
   @override
   Widget build(BuildContext context, WidgetRef ref) {
     final asyncComics = ref.watch(comicControllerProvider);
+    final readingNow = ref.watch(readingNowComicsProvider);
+    final lastAdded = ref.watch(lastAddedComicsProvider);
+    final unread = ref.watch(unreadComicsProvider);
 
     return asyncComics.when(
       loading: () => const Center(child: CircularProgressIndicator()),
@@ -35,7 +39,6 @@ class HomeScreen extends ConsumerWidget {
             },
             child: CustomScrollView(
               slivers: [
-                /// HEADER
                 SliverAppBar(
                   floating: true,
                   snap: true,
@@ -49,8 +52,6 @@ class HomeScreen extends ConsumerWidget {
                     ),
                   ],
                 ),
-
-                /// TÍTULO "Bienvenido"
                 SliverToBoxAdapter(
                   child: const Padding(
                     padding: EdgeInsets.symmetric(
@@ -66,8 +67,6 @@ class HomeScreen extends ConsumerWidget {
                     ),
                   ),
                 ),
-
-                /// SEARCH BAR
                 SliverToBoxAdapter(
                   child: Padding(
                     padding: const EdgeInsets.all(8.0),
@@ -84,14 +83,30 @@ class HomeScreen extends ConsumerWidget {
                     ),
                   ),
                 ),
-
-                /// CAROUSEL DE COMICS
                 SliverToBoxAdapter(
                   child: Padding(
                     padding: const EdgeInsets.all(8.0),
                     child: ComicsCarousel(
                       title: 'Últimos Agregados',
-                      comics: comics,
+                      comics: lastAdded,
+                    ),
+                  ),
+                ),
+                SliverToBoxAdapter(
+                  child: Padding(
+                    padding: const EdgeInsets.all(8.0),
+                    child: ComicsCarousel(
+                      title: 'Leyendo Actualmente',
+                      comics: readingNow,
+                    ),
+                  ),
+                ),
+                SliverToBoxAdapter(
+                  child: Padding(
+                    padding: const EdgeInsets.all(8.0),
+                    child: ComicsCarousel(
+                      title: 'Sin leer',
+                      comics: unread,
                     ),
                   ),
                 ),

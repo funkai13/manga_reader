@@ -37,7 +37,6 @@ class ComicsGrid extends ConsumerWidget {
     );
   }
 }
-
 /*class ComicCard extends StatelessWidget {
   final ComicEntity comic;
 

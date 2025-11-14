@@ -1,15 +1,18 @@
 import 'dart:io';
 
 import 'package:flutter_riverpod/flutter_riverpod.dart';
+import 'package:manga_reader/feature/Home/presenter/controller/comic_controller.dart';
 
 class ComicViewerController extends AsyncNotifier<List<File>> {
   @override
   Future<List<File>> build() async => [];
 
-  Future<void> loadComic(String imagesPath) async {
+  Future<void> loadComic(String imagesPath, int comicId) async {
     state = const AsyncLoading();
 
     try {
+      await ref.read(comicControllerProvider.notifier).markAsReading(comicId);
+
       final dir = Directory(imagesPath);
       print(imagesPath);
 
