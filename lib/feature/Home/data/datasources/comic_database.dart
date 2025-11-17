@@ -195,4 +195,38 @@ class ComicDatabase {
       );
     }
   }
+
+  Future<ComicModel?> getComicByFilePath(String filePath) async {
+    final db = await database;
+    final maps = await db.query(
+      ComicFields.tableName,
+      where: '${ComicFields.filePath} = ?',
+      whereArgs: [filePath],
+      limit: 1,
+    );
+    if (maps.isEmpty) return null;
+    return ComicModel.fromMap(maps.first);
+  }
+
+  Future<void> deleteComic(int id) async {
+    final db = await database;
+    await db.delete(
+      ComicFields.tableName,
+      where: '${ComicFields.id} = ?',
+      whereArgs: [id],
+    );
+  }
+
+  Future<ComicModel?> getComicByTitle(String title) async {
+    final db = await database;
+    final maps = await db.query(
+      ComicFields.tableName,
+      where: '${ComicFields.title} = ?',
+      whereArgs: [title],
+      limit: 1,
+    );
+
+    if (maps.isEmpty) return null;
+    return ComicModel.fromMap(maps.first);
+  }
 }

@@ -3,6 +3,7 @@ import 'dart:async';
 import 'package:file_picker/file_picker.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
+import 'package:manga_reader/feature/Home/domain/exceptions/comic_exceptions.dart';
 
 import '../../domain/entity/comic.dart';
 import '../../domain/provider/comic_provider.dart';
@@ -44,15 +45,46 @@ class ComicController extends AsyncNotifier<List<ComicEntity>> {
             bookMarks: '',
             isCompleted: false,
           );
-          final createdComic = await comicRepository.addComic(newComicEntity);
-          print('Inserting comic: $newComicEntity, ');
+          try {
+            final createdComic = await comicRepository.addComic(newComicEntity);
 
-          state = AsyncData([...state.value ?? [], createdComic]);
+            final currentList = state.value ?? [];
+            final alreadyInState =
+                currentList.any((c) => c.id == createdComic.id);
+
+            if (alreadyInState) {
+              ScaffoldMessenger.of(context).showSnackBar(
+                const SnackBar(
+                  content: Text('Este cómic ya está en tu biblioteca.'),
+                ),
+              );
+            } else {
+              state = AsyncData([...currentList, createdComic]);
+            }
+          } on UnsupportedComicException catch (e) {
+            ScaffoldMessenger.of(context).showSnackBar(
+              SnackBar(
+                content: Text(
+                  e.message.isNotEmpty
+                      ? e.message
+                      : 'Este archivo de cómic no está soportado.',
+                ),
+              ),
+            );
+          } catch (e) {
+            // Error inesperado
+            ScaffoldMessenger.of(context).showSnackBar(
+              const SnackBar(
+                content: Text('Ocurrió un error al agregar el cómic.'),
+              ),
+            );
+          }
         }
       } else {
         ScaffoldMessenger.of(context).showSnackBar(
           const SnackBar(
-              content: Text("Seleccione un archivo con extensión .cbr o .cbz")),
+            content: Text("Seleccione un archivo con extensión .cbr o .cbz"),
+          ),
         );
       }
     } else {

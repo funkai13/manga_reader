@@ -8,4 +8,6 @@ abstract class ComicRepository {
   Future<void> addBookMark(int id, int bookMark);
 
   Future<void> startReadingComic(int id);
+
+  Future<void> deleteComic(int id);
 }
