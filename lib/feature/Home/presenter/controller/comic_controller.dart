@@ -72,7 +72,6 @@ class ComicController extends AsyncNotifier<List<ComicEntity>> {
               ),
             );
           } catch (e) {
-            // Error inesperado
             ScaffoldMessenger.of(context).showSnackBar(
               const SnackBar(
                 content: Text('Ocurrió un error al agregar el cómic.'),
@@ -102,7 +101,6 @@ class ComicController extends AsyncNotifier<List<ComicEntity>> {
       return comics;
     } catch (error) {
       state = AsyncError(error, StackTrace.current);
-      print(error);
       rethrow;
     }
   }
@@ -123,7 +121,6 @@ class ComicController extends AsyncNotifier<List<ComicEntity>> {
       return 'Update success';
     } catch (error) {
       state = AsyncError(error, StackTrace.current);
-      print(error);
       rethrow;
     }
   }
@@ -142,7 +139,6 @@ class ComicController extends AsyncNotifier<List<ComicEntity>> {
         }).toList();
       });
     } catch (error) {
-      print('Error al marcar como leyendo: $error');
       rethrow;
     }
   }

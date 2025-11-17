@@ -35,7 +35,6 @@ class _ComicViewerScreenState extends ConsumerState<ComicViewerScreen> {
     _pageController = PageController();
     SystemChrome.setEnabledSystemUIMode(SystemUiMode.immersiveSticky);
     _pageController.addListener(_updateCurrentPage);
-    print(widget.comic.currentReadPage);
     Future(() {
       ref
           .read(comicViewerControllerProvider.notifier)
@@ -213,8 +212,6 @@ class _ComicViewerScreenState extends ConsumerState<ComicViewerScreen> {
                     fit: BoxFit.cover,
                     cacheWidth: 200,
                   ),
-
-                  // Resaltado de página actual
                   if (isCurrentPage)
                     Container(
                       decoration: BoxDecoration(
@@ -225,7 +222,6 @@ class _ComicViewerScreenState extends ConsumerState<ComicViewerScreen> {
                         color: Colors.white54,
                       ),
                     ),
-
                   Container(
                     decoration: BoxDecoration(
                       gradient: LinearGradient(
@@ -240,7 +236,6 @@ class _ComicViewerScreenState extends ConsumerState<ComicViewerScreen> {
                       ),
                     ),
                   ),
-
                   Center(
                     child: Text(
                       '${adjustedIndex + 1}',

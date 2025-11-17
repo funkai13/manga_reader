@@ -44,22 +44,16 @@ class ComicFileRepositoryImpl implements ComicFileRepository {
       await UnrarFile.extract_rar(filePath, tempDir.path);
 
       final extractedDir = Directory(tempDir.path);
-      final files =
-          extractedDir.listSync(recursive: true); // Recursively list all files
-      print("Extracted files: $files");
+      final files = extractedDir.listSync(recursive: true);
       for (final entity in files) {
         if (entity is File) {
           final filePath = entity.path;
-          print("Checking file: $filePath");
           if (filePath.endsWith('.jpg') || filePath.endsWith('.png')) {
-            print("Adding file: $filePath");
             extractedFiles.add(entity);
           }
         }
       }
-      print("Extracted files list: $extractedFiles");
     } catch (e) {
-      print('Error extracting CBR file: $e');
       throw Exception('Error extracting CBR file: $e');
     }
 

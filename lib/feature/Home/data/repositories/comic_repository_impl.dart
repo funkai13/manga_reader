@@ -1,7 +1,6 @@
 import 'dart:io';
 
 import 'package:archive/archive.dart';
-import 'package:flutter/foundation.dart'; // para kDebugMode
 import 'package:manga_reader/feature/Home/domain/exceptions/comic_exceptions.dart';
 import 'package:path/path.dart' as p;
 import 'package:path_provider/path_provider.dart';
@@ -20,8 +19,6 @@ class ComicRepositoryImpl implements ComicRepository {
   @override
   Future<ComicEntity> addComic(ComicEntity comic) async {
     final existingComic = await datasource.getComicByTitle(comic.title);
-    _log('🔍 existingComic: $existingComic');
-    _log('🔍 comic: $comic');
 
     if (existingComic != null) {
       return ComicEntity(
@@ -93,13 +90,10 @@ class ComicRepositoryImpl implements ComicRepository {
         bookMarks: comic.bookMarks,
         isCompleted: comic.isCompleted,
       );
-    } on UnsupportedComicException catch (e) {
-      _log('⚠️ UnsupportedComicException en addComic: $e');
+    } on UnsupportedComicException {
       await _cleanupFailedInsert(newId, folderPath);
       rethrow;
-    } catch (e, st) {
-      _log('❌ Error inesperado en addComic: $e');
-      _log(st.toString());
+    } catch (e) {
       await _cleanupFailedInsert(newId, folderPath);
       rethrow;
     }
@@ -128,30 +122,23 @@ class ComicRepositoryImpl implements ComicRepository {
     String archivePath,
     String outputDir,
   ) async {
-    _log('🔍 archivePath: $archivePath');
-    _log('🔍 outputDir: $outputDir');
-
     final ext = p.extension(archivePath).toLowerCase();
-    _log('🔍 extension: $ext');
 
     final archiveFile = File(archivePath);
     if (!await archiveFile.exists()) {
-      _log('❌ archivo no existe: $archivePath');
       return <File>[];
     }
 
     final tempOutput = Directory(p.join(outputDir, 'temp_extract'));
     if (!tempOutput.existsSync()) {
-      _log('📁 creando tempOutput: ${tempOutput.path}');
       tempOutput.createSync(recursive: true);
     }
 
     final rawExtracted = <File>[];
-    final seenPaths = <String>{}; // para evitar duplicados por path
+    final seenPaths = <String>{};
 
     if (ext == '.cbz') {
       try {
-        _log('📦 procesando CBZ (ZIP)');
         final bytes = await archiveFile.readAsBytes();
         final archive = ZipDecoder().decodeBytes(bytes);
 
@@ -161,34 +148,25 @@ class ComicRepositoryImpl implements ComicRepository {
 
           final destPath = p.join(tempOutput.path, ent.name);
           if (seenPaths.contains(destPath)) {
-            _log('⚠️ duplicado (CBZ), skip: $destPath');
             continue;
           }
 
           final outFile = File(destPath);
           outFile.createSync(recursive: true);
-          // async para no bloquear tanto
           await outFile.writeAsBytes(ent.content as List<int>);
           rawExtracted.add(outFile);
           seenPaths.add(destPath);
         }
-      } catch (e, st) {
-        _log('❌ Error al leer CBZ: $e');
-        _log(st.toString());
+      } catch (e) {
         throw UnsupportedComicException(
           'No se pudo leer el archivo CBZ. El archivo puede estar corrupto.',
         );
       }
     } else if (ext == '.cbr') {
-      _log('📦 procesando CBR (RAR)');
-
       final tempDir = Directory.systemTemp.createTempSync();
-      _log('📁 tempDir RAR: ${tempDir.path}');
 
       try {
-        _log('➡️ llamando a UnrarFile.extract_rar...');
         await UnrarFile.extract_rar(archivePath, tempDir.path);
-        _log('✅ extracción RAR completada');
 
         final files = tempDir
             .listSync(recursive: true)
@@ -196,13 +174,10 @@ class ComicRepositoryImpl implements ComicRepository {
             .where((f) => _isImagePath(f.path))
             .toList();
 
-        _log('📄 imágenes encontradas en CBR: ${files.length}');
-
         for (final f in files) {
           final destPath = p.join(tempOutput.path, p.basename(f.path));
 
           if (seenPaths.contains(destPath)) {
-            _log('⚠️ duplicado (CBR), skip: $destPath');
             continue;
           }
 
@@ -211,33 +186,22 @@ class ComicRepositoryImpl implements ComicRepository {
           rawExtracted.add(dest);
           seenPaths.add(destPath);
         }
-      } catch (e, st) {
-        _log('❌ Error al extraer CBR: $e');
-        _log(st.toString());
+      } catch (e) {
         throw UnsupportedComicException(
           'No se pudo extraer el archivo CBR (posiblemente RAR5 no soportado).',
         );
       } finally {
-        _log('🧹 borrando tempDir RAR...');
         tempDir.deleteSync(recursive: true);
       }
-    } else {
-      _log('⚠️ extensión no soportada: $ext');
     }
 
     if (rawExtracted.isEmpty) {
-      // Nada que mostrar → consideramos que no es soportado
       throw UnsupportedComicException(
         'El archivo no contiene imágenes soportadas (.jpg, .jpeg, .png).',
       );
     }
 
-    _log('📄 rawExtracted antes de ordenar: ${rawExtracted.length}');
     rawExtracted.sort((a, b) => _naturalSort(a.path, b.path));
-
-    for (int i = 0; i < rawExtracted.length; i++) {
-      _log("   ${i + 1}. ${rawExtracted[i].path}");
-    }
 
     final finalFiles = <File>[];
     var index = 1;
@@ -245,7 +209,6 @@ class ComicRepositoryImpl implements ComicRepository {
     for (final original in rawExtracted) {
       final srcFile = File(original.path);
       if (!srcFile.existsSync()) {
-        _log('⚠️ source ya no existe, skip: ${original.path}');
         continue;
       }
 
@@ -255,16 +218,12 @@ class ComicRepositoryImpl implements ComicRepository {
         index.toString().padLeft(4, '0') + pageExt,
       );
 
-      _log('🔁 renombrando ${original.path} -> $newPath');
-
       final f = await srcFile.rename(newPath);
       finalFiles.add(f);
       index++;
     }
 
-    _log('✅ finalFiles: ${finalFiles.length}');
     if (tempOutput.existsSync()) {
-      _log('🧹 borrando tempOutput: ${tempOutput.path}');
       tempOutput.deleteSync(recursive: true);
     }
 
@@ -302,12 +261,6 @@ class ComicRepositoryImpl implements ComicRepository {
     }
 
     return aMatches.length.compareTo(bMatches.length);
-  }
-
-  void _log(String msg) {
-    if (kDebugMode) {
-      print('[_extractComicToFolder] $msg');
-    }
   }
 
   @override

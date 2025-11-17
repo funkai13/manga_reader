@@ -14,7 +14,6 @@ class ComicViewerController extends AsyncNotifier<List<File>> {
       await ref.read(comicControllerProvider.notifier).markAsReading(comicId);
 
       final dir = Directory(imagesPath);
-      print(imagesPath);
 
       final images = dir
           .listSync()
