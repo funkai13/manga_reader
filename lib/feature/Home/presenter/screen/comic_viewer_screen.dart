@@ -233,6 +233,9 @@ class _ComicViewerScreenState extends ConsumerState<ComicViewerScreen> {
             _currentPageIndex = index;
             _previewPageIndex = null;
           });
+          ref
+              .read(comicControllerProvider.notifier)
+              .createBookmark(widget.comic.id!, index, widget.comic);
         },
       ),
       loading: () => const Center(child: CircularProgressIndicator()),
