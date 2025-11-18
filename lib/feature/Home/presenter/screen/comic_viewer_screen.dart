@@ -108,7 +108,6 @@ class _ComicViewerScreenState extends ConsumerState<ComicViewerScreen> {
   @override
   void dispose() {
     SystemChrome.setEnabledSystemUIMode(SystemUiMode.edgeToEdge);
-    SystemChrome.setEnabledSystemUIMode(SystemUiMode.edgeToEdge);
     _longPressTimer?.cancel();
     _pageController.dispose();
     super.dispose();
@@ -133,30 +132,60 @@ class _ComicViewerScreenState extends ConsumerState<ComicViewerScreen> {
       child: GestureDetector(
         onLongPressStart: (_) => _startLongPress(),
         onLongPressEnd: (_) => _endLongPress(),
-        onTap: () {
-          if (_showControls) _toggleControls();
+        onTapUp: (details) {
+          final width = MediaQuery.of(context).size.width;
+          final dx = details.localPosition.dx;
+          final leftZone = width * 0.3;
+          final rightZone = width * 0.7;
+          if (dx < leftZone) {
+            if (_currentPageIndex > 0) {
+              _pageController.previousPage(
+                  duration: const Duration(milliseconds: 200),
+                  curve: Curves.easeOut);
+            }
+          } else if (dx > rightZone) {
+            final comicState = ref.read(comicViewerControllerProvider);
+            final images = comicState.maybeWhen(
+              data: (imgs) => imgs,
+              orElse: () => <File>[],
+            );
+            if (_currentPageIndex < images.length - 1) {
+              _pageController.nextPage(
+                  duration: const Duration(milliseconds: 200),
+                  curve: Curves.easeOut);
+            }
+          } else {
+            _toggleControls();
+          }
         },
         child: Stack(
           children: [
             _buildComicViewer(comicState),
-            if (_showControls)
-              ComicControlsOverlay(
-                currentPageIndex: _currentPageIndex,
-                totalPages: totalPages,
-                mangaMode: _mangaMode,
-                isBookmarked: widget.comic.currentReadPage == _currentPageIndex,
-                onBack: _goBack,
-                onToggleBookmark: _toggleBookMark,
-                onToggleMangaMode: _toggleMangaMode,
-                onOpenPageGrid: () => _showPageSelector(images),
-                onPageSelected: (page) {
-                  _pageController.animateToPage(
-                    page,
-                    duration: const Duration(milliseconds: 300),
-                    curve: Curves.easeInOut,
-                  );
-                },
+            AnimatedOpacity(
+              opacity: _showControls ? 1 : 0,
+              duration: const Duration(milliseconds: 300),
+              child: IgnorePointer(
+                ignoring: !_showControls,
+                child: ComicControlsOverlay(
+                  currentPageIndex: _currentPageIndex,
+                  totalPages: totalPages,
+                  mangaMode: _mangaMode,
+                  isBookmarked:
+                      widget.comic.currentReadPage == _currentPageIndex,
+                  onBack: _goBack,
+                  onToggleBookmark: _toggleBookMark,
+                  onToggleMangaMode: _toggleMangaMode,
+                  onOpenPageGrid: () => _showPageSelector(images),
+                  onPageSelected: (page) {
+                    _pageController.animateToPage(
+                      page,
+                      duration: const Duration(milliseconds: 300),
+                      curve: Curves.easeInOut,
+                    );
+                  },
+                ),
               ),
+            ),
             LongPressOverlay(visible: _isLongPressing)
           ],
         ),
@@ -202,102 +231,6 @@ class _ComicViewerScreenState extends ConsumerState<ComicViewerScreen> {
       ),
       loading: () => const Center(child: CircularProgressIndicator()),
       error: (error, _) => Center(child: Text('Error: $error')),
-    );
-  }
-}
-
-class ComicPage extends StatefulWidget {
-  final File image;
-  final Function(double) onScaleChanged;
-  final double initialScale;
-
-  const ComicPage({
-    super.key,
-    required this.image,
-    required this.onScaleChanged,
-    required this.initialScale,
-  });
-
-  @override
-  State<ComicPage> createState() => _ComicPageState();
-}
-
-class _ComicPageState extends State<ComicPage> with TickerProviderStateMixin {
-  late final TransformationController _transformationController;
-  late final AnimationController _animationController;
-  late Offset _doubleTapLocalPosition = Offset.zero;
-  final double minScale = 1.0;
-  final double maxScale = 5.0;
-
-  @override
-  void initState() {
-    super.initState();
-    _transformationController = TransformationController();
-    _transformationController.addListener(_onTransformChanged);
-    _transformationController.value = Matrix4.identity()
-      ..scale(widget.initialScale);
-    _animationController = AnimationController(
-        vsync: this, duration: const Duration(milliseconds: 300));
-  }
-
-  void _onTransformChanged() {
-    final scale = _transformationController.value.getMaxScaleOnAxis();
-    widget.onScaleChanged(scale);
-  }
-
-  @override
-  void dispose() {
-    _transformationController.removeListener(_onTransformChanged);
-    _animationController.dispose();
-    _transformationController.dispose();
-    super.dispose();
-  }
-
-  void _animateTransition(Matrix4 endMatrix) {
-    final animation = Matrix4Tween(
-      begin: _transformationController.value,
-      end: endMatrix,
-    ).animate(
-      CurvedAnimation(
-        parent: _animationController,
-        curve: Curves.easeOut,
-      ),
-    );
-    animation.addListener(() {
-      _transformationController.value = animation.value;
-    });
-    _animationController.forward(from: 0);
-  }
-
-  void _onDoubleTap() {
-    final currentScale = _transformationController.value.getMaxScaleOnAxis();
-    final targetScale = currentScale <= minScale ? maxScale : minScale;
-
-    final newMatrix = Matrix4.identity()
-      ..translate(
-        -_doubleTapLocalPosition.dx * (targetScale - 1),
-        -_doubleTapLocalPosition.dy * (targetScale - 1),
-      )
-      ..scale(targetScale);
-    _animateTransition(newMatrix);
-  }
-
-  @override
-  Widget build(BuildContext context) {
-    return GestureDetector(
-      onDoubleTap: _onDoubleTap,
-      onDoubleTapDown: (details) {
-        _doubleTapLocalPosition = details.localPosition;
-      },
-      child: InteractiveViewer(
-        transformationController: _transformationController,
-        boundaryMargin: const EdgeInsets.all(20),
-        maxScale: maxScale,
-        minScale: minScale,
-        onInteractionUpdate: (_) => widget.onScaleChanged(
-            _transformationController.value.getMaxScaleOnAxis()),
-        child: Image.file(widget.image),
-      ),
     );
   }
 }

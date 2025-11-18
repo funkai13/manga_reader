@@ -1,6 +1,5 @@
-// lib/feature/Home/presenter/widgets/comic_controls_overlay.dart
-
 import 'package:flutter/material.dart';
+import 'package:flutter_screenutil/flutter_screenutil.dart';
 
 import 'comic_progress_bar.dart';
 
@@ -39,9 +38,9 @@ class ComicControlsOverlay extends StatelessWidget {
           begin: Alignment.topCenter,
           end: Alignment.bottomCenter,
           colors: [
-            Colors.black.withOpacity(0.5),
+            Colors.black.withValues(alpha: 0.5),
             Colors.transparent,
-            Colors.black.withOpacity(0.5),
+            Colors.black.withValues(alpha: 0.5),
           ],
         ),
       ),
@@ -53,7 +52,11 @@ class ComicControlsOverlay extends StatelessWidget {
               backgroundColor: Colors.transparent,
               elevation: 0,
               leading: IconButton(
-                icon: const Icon(Icons.arrow_back, color: Colors.white),
+                icon: Icon(
+                  Icons.arrow_back,
+                  color: Colors.white,
+                  size: 22.sp,
+                ),
                 onPressed: onBack,
               ),
               actions: [
@@ -62,23 +65,32 @@ class ComicControlsOverlay extends StatelessWidget {
                   icon: Icon(
                     isBookmarked ? Icons.bookmark : Icons.bookmark_outline,
                     color: Colors.white,
+                    size: 22.sp,
                   ),
                 ),
                 IconButton(
-                  icon: const Icon(Icons.list, color: Colors.white),
+                  icon: Icon(
+                    Icons.list,
+                    color: Colors.white,
+                    size: 22.sp,
+                  ),
                   onPressed: onOpenPageGrid,
                 ),
                 IconButton(
                   icon: Icon(
                     mangaMode ? Icons.book : Icons.menu_book,
                     color: Colors.white,
+                    size: 22.sp,
                   ),
                   onPressed: onToggleMangaMode,
                 ),
               ],
             ),
             Padding(
-              padding: const EdgeInsets.symmetric(horizontal: 20, vertical: 10),
+              padding: EdgeInsets.symmetric(
+                horizontal: 20.w,
+                vertical: 10.h,
+              ),
               child: Column(
                 children: [
                   Row(
@@ -87,19 +99,19 @@ class ComicControlsOverlay extends StatelessWidget {
                         ? [
                             Text(
                               totalPagesText,
-                              style: const TextStyle(
+                              style: TextStyle(
                                 decoration: TextDecoration.none,
                                 color: Colors.white70,
-                                fontSize: 18,
+                                fontSize: 14.sp,
                                 fontWeight: FontWeight.bold,
                               ),
                             ),
                             Text(
                               currentPageText,
-                              style: const TextStyle(
+                              style: TextStyle(
                                 decoration: TextDecoration.none,
                                 color: Colors.white,
-                                fontSize: 18,
+                                fontSize: 16.sp,
                                 fontWeight: FontWeight.bold,
                               ),
                             ),
@@ -107,32 +119,32 @@ class ComicControlsOverlay extends StatelessWidget {
                         : [
                             Text(
                               currentPageText,
-                              style: const TextStyle(
+                              style: TextStyle(
                                 decoration: TextDecoration.none,
                                 color: Colors.white,
-                                fontSize: 18,
+                                fontSize: 16.sp,
                                 fontWeight: FontWeight.bold,
                               ),
                             ),
                             Text(
                               totalPagesText,
-                              style: const TextStyle(
+                              style: TextStyle(
                                 decoration: TextDecoration.none,
                                 color: Colors.white70,
-                                fontSize: 18,
+                                fontSize: 14.sp,
                                 fontWeight: FontWeight.bold,
                               ),
                             ),
                           ],
                   ),
-                  const SizedBox(height: 8),
+                  SizedBox(height: 8.h),
                   ComicProgressBar(
                     currentPageIndex: currentPageIndex,
                     totalPages: totalPages,
                     mangaMode: mangaMode,
                     onPageSelected: onPageSelected,
                   ),
-                  const SizedBox(height: 12),
+                  SizedBox(height: 12.h),
                 ],
               ),
             ),

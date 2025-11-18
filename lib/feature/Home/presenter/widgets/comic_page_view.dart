@@ -1,10 +1,8 @@
-// lib/feature/Home/presenter/widgets/comic_page_view.dart
-
 import 'dart:io';
 
 import 'package:flutter/material.dart';
 
-import '../screen/comic_viewer_screen.dart';
+import 'comic_page.dart';
 
 class ComicPageView extends StatelessWidget {
   final PageController controller;
