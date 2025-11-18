@@ -1,15 +1,18 @@
 import 'dart:async';
 import 'dart:io';
-import 'dart:math';
 
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:manga_reader/feature/Home/domain/entity/comic.dart';
 import 'package:manga_reader/feature/Home/presenter/controller/comic_controller.dart';
+import 'package:manga_reader/feature/Home/presenter/widgets/comic_page_view.dart';
+import 'package:manga_reader/feature/Home/presenter/widgets/long_press_overlay.dart';
 import 'package:vibration/vibration.dart';
 
 import '../controller/comic_viewer_controller.dart';
+import '../widgets/comic_controls_overlay.dart';
+import '../widgets/comic_page_grid_dialog.dart';
 
 class ComicViewerScreen extends ConsumerStatefulWidget {
   final ComicEntity comic;
@@ -21,43 +24,56 @@ class ComicViewerScreen extends ConsumerStatefulWidget {
 }
 
 class _ComicViewerScreenState extends ConsumerState<ComicViewerScreen> {
-  late PageController _pageController;
+  late final PageController _pageController;
   final Map<int, double> _pageScales = {};
   int _currentPageIndex = 0;
   bool _showControls = false;
   bool _mangaMode = false;
-  late Timer _longPressTimer;
+  Timer? _longPressTimer;
   bool _isLongPressing = false;
 
   @override
   void initState() {
     super.initState();
+
     _pageController = PageController();
     SystemChrome.setEnabledSystemUIMode(SystemUiMode.immersiveSticky);
-    _pageController.addListener(_updateCurrentPage);
-    Future(() {
-      ref
-          .read(comicViewerControllerProvider.notifier)
-          .loadComic(widget.comic.imagesPath, widget.comic.id!)
-          .then((_) {
-        final totalPages =
-            ref.read(comicViewerControllerProvider).value?.length ?? 0;
-        if (totalPages > 0) {
-          final targetPage =
-              (widget.comic.currentReadPage).clamp(0, totalPages - 1);
-          WidgetsBinding.instance.addPostFrameCallback((_) {
-            _pageController.jumpToPage(targetPage);
-          });
-        }
-      });
+
+    WidgetsBinding.instance.addPostFrameCallback((_) {
+      if (!mounted) return;
+      _loadComicAndJumpToInitialPage();
+    });
+  }
+
+  Future<void> _loadComicAndJumpToInitialPage() async {
+    await ref
+        .read(comicViewerControllerProvider.notifier)
+        .loadComic(widget.comic.imagesPath, widget.comic.id!);
+
+    if (!mounted) return;
+
+    final images = ref.read(comicViewerControllerProvider).value ?? <File>[];
+
+    if (images.isEmpty) return;
+
+    final totalPages = images.length;
+    final targetPage = widget.comic.currentReadPage.clamp(0, totalPages - 1);
+
+    WidgetsBinding.instance.addPostFrameCallback((_) {
+      if (!mounted) return;
+      if (!_pageController.hasClients) return;
+      _pageController.jumpToPage(targetPage);
     });
   }
 
   void _startLongPress() {
+    _longPressTimer?.cancel();
     _longPressTimer = Timer(const Duration(milliseconds: 300), () async {
-      if (await Vibration.hasVibrator()) {
+      final hasVibrator = (await Vibration.hasVibrator()) ?? false;
+      if (hasVibrator) {
         Vibration.vibrate(duration: 50);
       }
+      if (!mounted) return;
       setState(() {
         _isLongPressing = true;
         _showControls = true;
@@ -66,16 +82,9 @@ class _ComicViewerScreenState extends ConsumerState<ComicViewerScreen> {
   }
 
   void _endLongPress() {
-    _longPressTimer.cancel();
+    _longPressTimer?.cancel();
     if (_isLongPressing) {
       setState(() => _isLongPressing = false);
-    }
-  }
-
-  void _updateCurrentPage() {
-    final newPage = _pageController.page?.round() ?? 0;
-    if (newPage != _currentPageIndex) {
-      setState(() => _currentPageIndex = newPage);
     }
   }
 
@@ -91,48 +100,6 @@ class _ComicViewerScreenState extends ConsumerState<ComicViewerScreen> {
         .createBookmark(widget.comic.id!, _currentPageIndex, widget.comic);
   }
 
-  void _handleProgressTap(TapDownDetails details, int totalPages) {
-    final renderBox = context.findRenderObject() as RenderBox;
-    final offset = details.localPosition.dx;
-    final width = renderBox.size.width;
-    final page = (offset / width * totalPages).floor().clamp(0, totalPages - 1);
-    _pageController.animateToPage(
-      page,
-      duration: const Duration(milliseconds: 300),
-      curve: Curves.easeInOut,
-    );
-  }
-
-  void _handleProgressDrag(DragUpdateDetails details, int totalPages) {
-    final renderBox = context.findRenderObject() as RenderBox;
-    final offset = details.localPosition.dx;
-    final width = renderBox.size.width;
-    final page = (offset / width * totalPages).floor().clamp(0, totalPages - 1);
-    _pageController.jumpToPage(page);
-  }
-
-  void _showPageSelector(int totalPages) {
-    showDialog(
-      context: context,
-      builder: (context) => AlertDialog(
-        backgroundColor: Colors.black.withOpacity(0.9),
-        contentPadding: const EdgeInsets.all(10),
-        content: SizedBox(
-          width: double.maxFinite,
-          child: Column(
-            mainAxisSize: MainAxisSize.min,
-            children: [
-              const Text('Seleccionar Página',
-                  style: TextStyle(color: Colors.white, fontSize: 18)),
-              const SizedBox(height: 10),
-              _buildPageGrid(totalPages),
-            ],
-          ),
-        ),
-      ),
-    );
-  }
-
   void _goBack() {
     _toggleBookMark();
     Navigator.pop(context);
@@ -141,19 +108,21 @@ class _ComicViewerScreenState extends ConsumerState<ComicViewerScreen> {
   @override
   void dispose() {
     SystemChrome.setEnabledSystemUIMode(SystemUiMode.edgeToEdge);
-    _pageController.removeListener(_updateCurrentPage);
+    SystemChrome.setEnabledSystemUIMode(SystemUiMode.edgeToEdge);
+    _longPressTimer?.cancel();
     _pageController.dispose();
-
     super.dispose();
   }
 
   @override
   Widget build(BuildContext context) {
     final comicState = ref.watch(comicViewerControllerProvider);
-    final totalPages = comicState.maybeWhen(
-      data: (images) => images.length,
-      orElse: () => 0,
+
+    final images = comicState.maybeWhen(
+      data: (imgs) => imgs,
+      orElse: () => <File>[],
     );
+    final totalPages = images.length;
     return PopScope(
       canPop: !_showControls,
       onPopInvokedWithResult: (bool didPop, dynamic result) {
@@ -169,250 +138,67 @@ class _ComicViewerScreenState extends ConsumerState<ComicViewerScreen> {
         },
         child: Stack(
           children: [
-            _buildComicViewer(comicState, totalPages),
-            if (_showControls) _buildControlsOverlay(totalPages),
-            if (_isLongPressing) _buildLongPressFeedback(),
+            _buildComicViewer(comicState),
+            if (_showControls)
+              ComicControlsOverlay(
+                currentPageIndex: _currentPageIndex,
+                totalPages: totalPages,
+                mangaMode: _mangaMode,
+                isBookmarked: widget.comic.currentReadPage == _currentPageIndex,
+                onBack: _goBack,
+                onToggleBookmark: _toggleBookMark,
+                onToggleMangaMode: _toggleMangaMode,
+                onOpenPageGrid: () => _showPageSelector(images),
+                onPageSelected: (page) {
+                  _pageController.animateToPage(
+                    page,
+                    duration: const Duration(milliseconds: 300),
+                    curve: Curves.easeInOut,
+                  );
+                },
+              ),
+            LongPressOverlay(visible: _isLongPressing)
           ],
         ),
       ),
     );
   }
 
-  Widget _buildPageGrid(int totalPages) {
-    final comicState = ref.watch(comicViewerControllerProvider);
+  void _showPageSelector(List<File> images) {
+    if (images.isEmpty) return;
 
+    showDialog(
+      context: context,
+      builder: (context) => ComicPageGridDialog(
+        images: images,
+        currentPageIndex: _currentPageIndex,
+        mangaMode: _mangaMode,
+        onPageSelected: (page) {
+          Navigator.of(context).pop();
+          _pageController.animateToPage(
+            page,
+            duration: const Duration(milliseconds: 300),
+            curve: Curves.easeInOut,
+          );
+        },
+      ),
+    );
+  }
+
+  Widget _buildComicViewer(AsyncValue<List<File>> comicState) {
     return comicState.when(
-      data: (images) => SizedBox(
-        height: MediaQuery.of(context).size.height * 0.6,
-        child: GridView.builder(
-          gridDelegate: const SliverGridDelegateWithFixedCrossAxisCount(
-            crossAxisCount: 3,
-            crossAxisSpacing: 5,
-            mainAxisSpacing: 5,
-          ),
-          itemCount: images.length,
-          itemBuilder: (context, index) {
-            final adjustedIndex = _mangaMode ? totalPages - index - 1 : index;
-            final isCurrentPage = _currentPageIndex == adjustedIndex;
-
-            return GestureDetector(
-              onTap: () {
-                Navigator.pop(context);
-                _pageController.animateToPage(
-                  adjustedIndex,
-                  duration: const Duration(milliseconds: 300),
-                  curve: Curves.easeInOut,
-                );
-              },
-              child: Stack(
-                fit: StackFit.expand,
-                children: [
-                  Image.file(
-                    images[adjustedIndex],
-                    fit: BoxFit.cover,
-                    cacheWidth: 200,
-                  ),
-                  if (isCurrentPage)
-                    Container(
-                      decoration: BoxDecoration(
-                        border: Border.all(
-                          color: Colors.amber,
-                          width: 3,
-                        ),
-                        color: Colors.white54,
-                      ),
-                    ),
-                  Container(
-                    decoration: BoxDecoration(
-                      gradient: LinearGradient(
-                        begin: Alignment.topCenter,
-                        end: Alignment.bottomCenter,
-                        colors: [
-                          Colors.black.withOpacity(0.3),
-                          Colors.transparent,
-                          Colors.transparent,
-                          Colors.black.withOpacity(0.3),
-                        ],
-                      ),
-                    ),
-                  ),
-                  Center(
-                    child: Text(
-                      '${adjustedIndex + 1}',
-                      style: const TextStyle(
-                        fontSize: 26,
-                        fontWeight: FontWeight.bold,
-                        color: Colors.white,
-                        shadows: [
-                          Shadow(
-                            blurRadius: 8.0,
-                            color: Colors.black,
-                            offset: Offset(2.0, 2.0),
-                          ),
-                        ],
-                      ),
-                    ),
-                  ),
-                ],
-              ),
-            );
-          },
-        ),
-      ),
-      loading: () => const Center(child: CircularProgressIndicator()),
-      error: (error, _) =>
-          Text('Error: $error', style: const TextStyle(color: Colors.red)),
-    );
-  }
-
-  Widget _buildControlsOverlay(int totalPages) {
-    final progress =
-        totalPages > 0 ? (_currentPageIndex + 1) / totalPages : 0.0;
-
-    return Container(
-      decoration: BoxDecoration(
-        gradient: LinearGradient(
-          begin: Alignment.topCenter,
-          end: Alignment.bottomCenter,
-          colors: [
-            Colors.black.withOpacity(0.5),
-            Colors.transparent,
-            Colors.black.withOpacity(0.5),
-          ],
-        ),
-      ),
-      child: SafeArea(
-        child: Column(
-          mainAxisAlignment: MainAxisAlignment.spaceBetween,
-          children: [
-            AppBar(
-              backgroundColor: Colors.transparent,
-              elevation: 0,
-              leading: IconButton(
-                icon: const Icon(Icons.arrow_back, color: Colors.white),
-                onPressed: _goBack,
-              ),
-              actions: [
-                IconButton(
-                  onPressed: _toggleBookMark,
-                  icon: widget.comic.currentReadPage == _currentPageIndex
-                      ? const Icon(Icons.bookmark, color: Colors.white)
-                      : const Icon(Icons.bookmark_outline, color: Colors.white),
-                ),
-                IconButton(
-                  icon: const Icon(Icons.list, color: Colors.white),
-                  onPressed: () => _showPageSelector(totalPages),
-                ),
-                IconButton(
-                  icon: Icon(
-                    _mangaMode ? Icons.book : Icons.menu_book,
-                    color: Colors.white,
-                  ),
-                  onPressed: _toggleMangaMode,
-                ),
-              ],
-            ),
-            _buildBottomControls(progress, totalPages),
-          ],
-        ),
-      ),
-    );
-  }
-
-  Widget _buildLongPressFeedback() {
-    return Container(
-      color: Colors.black54,
-      child: const Center(
-        child: Icon(Icons.touch_app, size: 50, color: Colors.white),
-      ),
-    );
-  }
-
-  Widget _buildBottomControls(double progress, int totalPages) {
-    return Padding(
-      padding: const EdgeInsets.symmetric(horizontal: 20, vertical: 10),
-      child: Column(
-        children: [
-          Row(
-              mainAxisAlignment: MainAxisAlignment.spaceBetween,
-              children: _mangaMode
-                  ? [
-                      Text(
-                        '$totalPages Páginas',
-                        style: const TextStyle(
-                            decoration: TextDecoration.none,
-                            color: Colors.white70,
-                            fontSize: 18,
-                            fontWeight: FontWeight.bold),
-                      ),
-                      Text(
-                        'Página ${_currentPageIndex + 1}',
-                        style: const TextStyle(
-                            decoration: TextDecoration.none,
-                            color: Colors.white,
-                            fontSize: 18,
-                            fontWeight: FontWeight.bold),
-                      ),
-                    ]
-                  : [
-                      Text(
-                        'Página ${_currentPageIndex + 1}',
-                        style: const TextStyle(
-                            decoration: TextDecoration.none,
-                            color: Colors.white,
-                            fontSize: 18,
-                            fontWeight: FontWeight.bold),
-                      ),
-                      Text(
-                        '$totalPages Páginas',
-                        style: const TextStyle(
-                            decoration: TextDecoration.none,
-                            color: Colors.white70,
-                            fontSize: 18,
-                            fontWeight: FontWeight.bold),
-                      ),
-                    ]),
-          const SizedBox(height: 8),
-          Transform(
-            alignment: Alignment.center,
-            transform: Matrix4.rotationY(_mangaMode ? pi : 0),
-            child: GestureDetector(
-              onTapDown: (details) => _handleProgressTap(details, totalPages),
-              onHorizontalDragUpdate: (details) =>
-                  _handleProgressDrag(details, totalPages),
-              child: SizedBox(
-                height: 24,
-                child: LinearProgressIndicator(
-                  value: progress,
-                  backgroundColor: Colors.white.withOpacity(0.2),
-                  valueColor: AlwaysStoppedAnimation<Color>(
-                      Colors.white.withOpacity(0.8)),
-                  borderRadius: BorderRadius.circular(10),
-                ),
-              ),
-            ),
-          ),
-          const SizedBox(height: 12),
-        ],
-      ),
-    );
-  }
-
-  Widget _buildComicViewer(AsyncValue<List<File>> comicState, int totalPages) {
-    return comicState.when(
-      data: (images) => PageView.builder(
+      data: (images) => ComicPageView(
         controller: _pageController,
-        scrollDirection: Axis.horizontal,
-        reverse: _mangaMode,
-        physics: _enablePageView
-            ? const PageScrollPhysics()
-            : const NeverScrollableScrollPhysics(),
-        itemCount: images.length,
-        itemBuilder: (context, index) => ComicPage(
-          image: images[index],
-          onScaleChanged: (scale) => setState(() => _pageScales[index] = scale),
-          initialScale: _pageScales[index] ?? 1.0,
-        ),
+        images: images,
+        mangaMode: _mangaMode,
+        enablePageScroll: _enablePageView,
+        pageScales: _pageScales,
+        onPageScaleChanged: (index, scale) {
+          setState(() => _pageScales[index] = scale);
+        },
+        onPageChanged: (index) {
+          setState(() => _currentPageIndex = index);
+        },
       ),
       loading: () => const Center(child: CircularProgressIndicator()),
       error: (error, _) => Center(child: Text('Error: $error')),
