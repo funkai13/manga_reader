@@ -27,6 +27,7 @@ class _ComicViewerScreenState extends ConsumerState<ComicViewerScreen> {
   late final PageController _pageController;
   final Map<int, double> _pageScales = {};
   int _currentPageIndex = 0;
+  int? _previewPageIndex;
   bool _showControls = false;
   bool _mangaMode = false;
   Timer? _longPressTimer;
@@ -167,6 +168,7 @@ class _ComicViewerScreenState extends ConsumerState<ComicViewerScreen> {
               child: IgnorePointer(
                 ignoring: !_showControls,
                 child: ComicControlsOverlay(
+                  previewPageIndex: _previewPageIndex,
                   currentPageIndex: _currentPageIndex,
                   totalPages: totalPages,
                   mangaMode: _mangaMode,
@@ -177,11 +179,12 @@ class _ComicViewerScreenState extends ConsumerState<ComicViewerScreen> {
                   onToggleMangaMode: _toggleMangaMode,
                   onOpenPageGrid: () => _showPageSelector(images),
                   onPageSelected: (page) {
-                    _pageController.animateToPage(
-                      page,
-                      duration: const Duration(milliseconds: 300),
-                      curve: Curves.easeInOut,
-                    );
+                    _pageController.jumpToPage(page);
+                  },
+                  onPreviewPageChanged: (previewPage) {
+                    setState(() {
+                      _previewPageIndex = previewPage;
+                    });
                   },
                 ),
               ),
@@ -226,7 +229,10 @@ class _ComicViewerScreenState extends ConsumerState<ComicViewerScreen> {
           setState(() => _pageScales[index] = scale);
         },
         onPageChanged: (index) {
-          setState(() => _currentPageIndex = index);
+          setState(() {
+            _currentPageIndex = index;
+            _previewPageIndex = null;
+          });
         },
       ),
       loading: () => const Center(child: CircularProgressIndicator()),

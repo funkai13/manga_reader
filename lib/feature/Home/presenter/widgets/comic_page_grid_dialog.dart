@@ -1,8 +1,7 @@
-// lib/feature/Home/presenter/widgets/comic_page_grid_dialog.dart
-
 import 'dart:io';
 
 import 'package:flutter/material.dart';
+import 'package:flutter_screenutil/flutter_screenutil.dart';
 
 class ComicPageGridDialog extends StatelessWidget {
   final List<File> images;
@@ -24,24 +23,28 @@ class ComicPageGridDialog extends StatelessWidget {
 
     return AlertDialog(
       backgroundColor: Colors.black.withOpacity(0.9),
-      contentPadding: const EdgeInsets.all(10),
+      contentPadding: EdgeInsets.all(10.w),
       content: SizedBox(
         width: double.maxFinite,
         child: Column(
           mainAxisSize: MainAxisSize.min,
           children: [
-            const Text(
+            Text(
               'Seleccionar Página',
-              style: TextStyle(color: Colors.white, fontSize: 18),
+              style: TextStyle(
+                color: Colors.white,
+                fontSize: 18.sp,
+                fontWeight: FontWeight.w600,
+              ),
             ),
-            const SizedBox(height: 10),
+            SizedBox(height: 10.h),
             SizedBox(
-              height: MediaQuery.of(context).size.height * 0.6,
+              height: 0.6.sh, // 60% de la altura de pantalla
               child: GridView.builder(
-                gridDelegate: const SliverGridDelegateWithFixedCrossAxisCount(
+                gridDelegate: SliverGridDelegateWithFixedCrossAxisCount(
                   crossAxisCount: 3,
-                  crossAxisSpacing: 5,
-                  mainAxisSpacing: 5,
+                  crossAxisSpacing: 5.w,
+                  mainAxisSpacing: 5.h,
                 ),
                 itemCount: images.length,
                 itemBuilder: (context, index) {
@@ -64,7 +67,7 @@ class ComicPageGridDialog extends StatelessWidget {
                             decoration: BoxDecoration(
                               border: Border.all(
                                 color: Colors.amber,
-                                width: 3,
+                                width: 3.w,
                               ),
                               color: Colors.white54,
                             ),
@@ -86,15 +89,15 @@ class ComicPageGridDialog extends StatelessWidget {
                         Center(
                           child: Text(
                             '${adjustedIndex + 1}',
-                            style: const TextStyle(
-                              fontSize: 26,
+                            style: TextStyle(
+                              fontSize: 22.sp,
                               fontWeight: FontWeight.bold,
                               color: Colors.white,
                               shadows: [
                                 Shadow(
                                   blurRadius: 8.0,
                                   color: Colors.black,
-                                  offset: Offset(2.0, 2.0),
+                                  offset: Offset(2.0.w, 2.0.h),
                                 ),
                               ],
                             ),

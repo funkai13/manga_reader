@@ -8,11 +8,13 @@ class ComicControlsOverlay extends StatelessWidget {
   final int totalPages;
   final bool mangaMode;
   final bool isBookmarked;
+  final int? previewPageIndex;
   final VoidCallback onBack;
   final VoidCallback onToggleBookmark;
   final VoidCallback onOpenPageGrid;
   final VoidCallback onToggleMangaMode;
   final ValueChanged<int> onPageSelected;
+  final ValueChanged<int?> onPreviewPageChanged;
 
   const ComicControlsOverlay({
     super.key,
@@ -25,11 +27,14 @@ class ComicControlsOverlay extends StatelessWidget {
     required this.onOpenPageGrid,
     required this.onToggleMangaMode,
     required this.onPageSelected,
+    required this.onPreviewPageChanged,
+    this.previewPageIndex,
   });
 
   @override
   Widget build(BuildContext context) {
-    final currentPageText = 'Página ${currentPageIndex + 1}';
+    final effectivePageIndex = previewPageIndex ?? currentPageIndex;
+    final currentPageText = 'Página ${effectivePageIndex + 1}';
     final totalPagesText = '$totalPages Páginas';
 
     return Container(
@@ -143,6 +148,7 @@ class ComicControlsOverlay extends StatelessWidget {
                     totalPages: totalPages,
                     mangaMode: mangaMode,
                     onPageSelected: onPageSelected,
+                    onPreviewPageChanged: onPreviewPageChanged,
                   ),
                   SizedBox(height: 12.h),
                 ],
