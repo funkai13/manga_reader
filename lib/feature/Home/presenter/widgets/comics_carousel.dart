@@ -2,6 +2,7 @@ import 'package:flutter/material.dart';
 import 'package:flutter_screenutil/flutter_screenutil.dart';
 import 'package:manga_reader/core/theme/colors.dart';
 import 'package:manga_reader/feature/Home/domain/entity/comic.dart';
+import 'package:manga_reader/feature/Home/presenter/screen/comic_viewer_screen.dart';
 
 import 'comic_card.dart';
 
@@ -42,10 +43,19 @@ class ComicsCarousel extends StatelessWidget {
             padding: EdgeInsets.symmetric(horizontal: 20.w),
             itemCount: comics.length,
             itemBuilder: (context, index) {
-              return Container(
-                margin: EdgeInsets.only(right: 12.w),
-                width: 140.w,
-                child: ComicCard(comic: comics[index]),
+              final comic = comics[index];
+              return GestureDetector(
+                onTap: () {
+                  Navigator.push(
+                      context,
+                      MaterialPageRoute(
+                          builder: (_) => ComicViewerScreen(comic: comic)));
+                },
+                child: Container(
+                  margin: EdgeInsets.only(right: 12.w),
+                  width: 140.w,
+                  child: ComicCard(comic: comics[index]),
+                ),
               );
             },
           ),
