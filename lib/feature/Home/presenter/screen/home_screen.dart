@@ -151,7 +151,7 @@ SliverToBoxAdapter _buildSearchBar(
     child: Padding(
       padding: EdgeInsets.symmetric(horizontal: 20.w),
       child: Container(
-        margin: EdgeInsets.only(bottom: 24.h, top: 24.h),
+        margin: EdgeInsets.only(bottom: 16.h, top: 16.h),
         decoration: BoxDecoration(
           color: isDark ? AppColorsDark.cardColor : AppColorsLight.cardColor,
           borderRadius: BorderRadius.circular(16.r),
@@ -167,13 +167,24 @@ SliverToBoxAdapter _buildSearchBar(
           builder: (BuildContext context, SearchController controller) {
             return SearchBar(
               controller: controller,
-              onTap: () => controller.openView(),
-              onChanged: (_) => controller.openView(),
+              padding: WidgetStatePropertyAll(
+                EdgeInsets.symmetric(horizontal: 16.w, vertical: 8.h),
+              ),
+              onTap: () {
+                controller.openView();
+              },
+              onChanged: (_) {
+                controller.openView();
+              },
+              onTapOutside: (_) {
+                FocusScope.of(context).unfocus();
+              },
               leading: Icon(
                 Icons.search,
                 color: isDark
                     ? AppColorsDark.textColor.withOpacity(0.6)
                     : AppColorsLight.textColor.withOpacity(0.6),
+                size: 20.sp,
               ),
               hintText: 'Buscar en tu biblioteca',
               hintStyle: WidgetStatePropertyAll(
@@ -181,7 +192,7 @@ SliverToBoxAdapter _buildSearchBar(
                   color: isDark
                       ? AppColorsDark.textColor.withOpacity(0.4)
                       : AppColorsLight.textColor.withOpacity(0.4),
-                  fontSize: 15.sp,
+                  fontSize: 14.sp,
                 ),
               ),
               elevation: const WidgetStatePropertyAll(0),
@@ -194,11 +205,9 @@ SliverToBoxAdapter _buildSearchBar(
                   side: BorderSide.none,
                 ),
               ),
-              padding: WidgetStatePropertyAll(
-                EdgeInsets.symmetric(
-                  horizontal: 16.w,
-                  vertical: 12.h,
-                ),
+              constraints: const BoxConstraints(
+                minHeight: 40,
+                maxHeight: 44,
               ),
             );
           },
@@ -229,7 +238,6 @@ SliverToBoxAdapter _buildSearchBar(
                   ),
                   onTap: () {
                     controller.closeView('');
-                    controller.clear();
                     FocusScope.of(context).unfocus();
                   },
                 ),
@@ -241,10 +249,24 @@ SliverToBoxAdapter _buildSearchBar(
                 leading: Icon(
                   comic.isReading ? Icons.menu_book : Icons.book_outlined,
                 ),
-                title: Text(
-                  comic.title,
-                  maxLines: 1,
-                  overflow: TextOverflow.ellipsis,
+                title: RichText(
+                  text: _buildHighlightedTextSpan(
+                    text: comic.title,
+                    query: input,
+                    normalStyle: TextStyle(
+                        fontSize: 14.sp,
+                        fontWeight: FontWeight.w500,
+                        color: isDark
+                            ? AppColorsDark.textColor
+                            : AppColorsLight.textColor),
+                    highlightStyle: TextStyle(
+                      fontSize: 14.sp,
+                      fontWeight: FontWeight.w700,
+                      color: isDark
+                          ? AppColorsDark.accentColor
+                          : AppColorsLight.accentColor,
+                    ),
+                  ),
                 ),
                 subtitle: Text(
                   comic.isReading
@@ -255,17 +277,18 @@ SliverToBoxAdapter _buildSearchBar(
                 ),
                 onTap: () async {
                   controller.closeView(comic.title);
+
                   FocusScope.of(context).unfocus();
 
-                  Navigator.push(
+                  await Navigator.push(
                     context,
                     MaterialPageRoute(
                       builder: (context) => ComicViewerScreen(comic: comic),
                     ),
                   );
 
-                  controller.clear();
-                  FocusManager.instance.primaryFocus?.unfocus();
+                  controller.text = '';
+                  FocusScope.of(context).unfocus();
                 },
               );
             });
@@ -273,5 +296,45 @@ SliverToBoxAdapter _buildSearchBar(
         ),
       ),
     ),
+  );
+}
+
+TextSpan _buildHighlightedTextSpan({
+  required String text,
+  required String query,
+  required TextStyle normalStyle,
+  required TextStyle highlightStyle,
+}) {
+  if (query.isEmpty) {
+    return TextSpan(text: text, style: normalStyle);
+  }
+
+  final lowerText = text.toLowerCase();
+  final lowerQuery = query.toLowerCase();
+
+  final startIndex = lowerText.indexOf(lowerQuery);
+  if (startIndex == -1) {
+    return TextSpan(text: text, style: normalStyle);
+  }
+
+  final endIndex = startIndex + query.length;
+
+  return TextSpan(
+    children: [
+      if (startIndex > 0)
+        TextSpan(
+          text: text.substring(0, startIndex),
+          style: normalStyle,
+        ),
+      TextSpan(
+        text: text.substring(startIndex, endIndex),
+        style: highlightStyle,
+      ),
+      if (endIndex < text.length)
+        TextSpan(
+          text: text.substring(endIndex),
+          style: normalStyle,
+        ),
+    ],
   );
 }
