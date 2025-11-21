@@ -9,8 +9,13 @@ import 'comic_card.dart';
 class ComicsCarousel extends StatelessWidget {
   final String title;
   final List<ComicEntity> comics;
+  final double scale;
 
-  const ComicsCarousel({required this.title, required this.comics, super.key});
+  const ComicsCarousel(
+      {required this.title,
+      required this.comics,
+      required this.scale,
+      super.key});
 
   @override
   Widget build(BuildContext context) {
@@ -22,11 +27,11 @@ class ComicsCarousel extends StatelessWidget {
       crossAxisAlignment: CrossAxisAlignment.start,
       children: [
         Padding(
-          padding: EdgeInsets.symmetric(horizontal: 20.w),
+          padding: EdgeInsets.symmetric(horizontal: 20.w * scale),
           child: Text(
             title,
             style: TextStyle(
-              fontSize: 22.sp,
+              fontSize: 20.sp * scale,
               fontWeight: FontWeight.bold,
               color:
                   isDark ? AppColorsDark.textColor : AppColorsLight.textColor,
@@ -34,13 +39,13 @@ class ComicsCarousel extends StatelessWidget {
             ),
           ),
         ),
-        SizedBox(height: 12.h),
+        SizedBox(height: 12.h * scale),
         SizedBox(
-          height: 240.h,
+          height: 240.h * scale,
           child: ListView.builder(
             scrollDirection: Axis.horizontal,
             physics: const BouncingScrollPhysics(),
-            padding: EdgeInsets.symmetric(horizontal: 20.w),
+            padding: EdgeInsets.symmetric(horizontal: 20.w * scale),
             itemCount: comics.length,
             itemBuilder: (context, index) {
               final comic = comics[index];
@@ -52,15 +57,18 @@ class ComicsCarousel extends StatelessWidget {
                           builder: (_) => ComicViewerScreen(comic: comic)));
                 },
                 child: Container(
-                  margin: EdgeInsets.only(right: 12.w),
-                  width: 140.w,
-                  child: ComicCard(comic: comics[index]),
+                  margin: EdgeInsets.only(right: 12.w * scale),
+                  width: 140.w * scale,
+                  child: ComicCard(
+                    comic: comics[index],
+                    scale: scale,
+                  ),
                 ),
               );
             },
           ),
         ),
-        SizedBox(height: 24.h),
+        SizedBox(height: 24.h * scale),
       ],
     );
   }

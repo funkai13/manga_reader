@@ -27,7 +27,10 @@ class ComicsGrid extends ConsumerWidget {
             mainAxisSpacing: 10,
             mainAxisExtent: 250,
             itemBuilder: (comic) {
-              return ComicCard(comic: comic);
+              return ComicCard(
+                comic: comic,
+                scale: 1.0,
+              );
             },
           )),
       loading: () => const Center(child: CircularProgressIndicator()),

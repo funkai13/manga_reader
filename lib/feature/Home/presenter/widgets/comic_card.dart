@@ -7,8 +7,9 @@ import 'package:manga_reader/feature/Home/domain/entity/comic.dart';
 
 class ComicCard extends StatelessWidget {
   final ComicEntity comic;
+  final double scale;
 
-  const ComicCard({super.key, required this.comic});
+  const ComicCard({super.key, required this.comic, required this.scale});
 
   @override
   Widget build(BuildContext context) {
@@ -18,17 +19,17 @@ class ComicCard extends StatelessWidget {
       aspectRatio: 3 / 4,
       child: Container(
         decoration: BoxDecoration(
-          borderRadius: BorderRadius.circular(12.r),
+          borderRadius: BorderRadius.circular(12.r * scale),
           boxShadow: [
             BoxShadow(
-              color: Colors.black.withOpacity(0.18),
-              blurRadius: 12,
+              color: Colors.black.withValues(alpha: 0.18),
+              blurRadius: 12 * scale,
               offset: const Offset(0, 4),
             ),
           ],
         ),
         child: ClipRRect(
-          borderRadius: BorderRadius.circular(12.r),
+          borderRadius: BorderRadius.circular(12.r * scale),
           child: Stack(
             fit: StackFit.expand,
             children: [
@@ -48,16 +49,16 @@ class ComicCard extends StatelessWidget {
                 bottom: 0,
                 child: Container(
                   padding: EdgeInsets.symmetric(
-                    horizontal: 8.w,
-                    vertical: 6.h,
+                    horizontal: 8.w * scale,
+                    vertical: 6.h * scale,
                   ),
                   decoration: BoxDecoration(
                     gradient: LinearGradient(
                       begin: Alignment.bottomCenter,
                       end: Alignment.topCenter,
                       colors: [
-                        Colors.black.withOpacity(0.8),
-                        Colors.black.withOpacity(0.0),
+                        Colors.black.withValues(alpha: 0.8),
+                        Colors.black.withValues(alpha: 0.0),
                       ],
                     ),
                   ),
@@ -70,7 +71,7 @@ class ComicCard extends StatelessWidget {
                           'Pág. ${comic.currentReadPage + 1}',
                           style: TextStyle(
                             fontSize: 11.sp,
-                            color: Colors.white.withOpacity(0.9),
+                            color: Colors.white.withValues(alpha: 0.9),
                             fontWeight: FontWeight.w500,
                           ),
                         ),
@@ -92,9 +93,9 @@ class ComicCard extends StatelessWidget {
         child: Icon(
           Icons.book,
           color: isDark
-              ? AppColorsDark.textColor.withOpacity(0.3)
-              : AppColorsLight.textColor.withOpacity(0.3),
-          size: 40.sp,
+              ? AppColorsDark.textColor.withValues(alpha: 0.3)
+              : AppColorsLight.textColor.withValues(alpha: 0.3),
+          size: 40.sp * scale,
         ),
       ),
     );
@@ -120,22 +121,22 @@ class ComicCard extends StatelessWidget {
     }
 
     if (isDark) {
-      color = color.withOpacity(0.9);
+      color = color.withValues(alpha: 0.9);
     }
 
     return Container(
       padding: EdgeInsets.symmetric(
-        horizontal: 8.w,
-        vertical: 4.h,
+        horizontal: 8.w * scale,
+        vertical: 4.h * scale,
       ),
       decoration: BoxDecoration(
         color: color,
-        borderRadius: BorderRadius.circular(999.r),
+        borderRadius: BorderRadius.circular(999.r * scale),
       ),
       child: Text(
         label,
         style: TextStyle(
-          fontSize: 10.sp,
+          fontSize: 10.sp * scale,
           color: Colors.white,
           fontWeight: FontWeight.w600,
           letterSpacing: 0.2,
