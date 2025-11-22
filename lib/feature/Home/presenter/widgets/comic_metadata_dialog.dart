@@ -90,6 +90,7 @@ class _ComicMetadataDialogState extends ConsumerState<ComicMetadataDialog> {
                 CustomAutocompleteField(
                   label: 'Autor',
                   controller: _authorController,
+                  icon: Icons.person,
                   optionsBuilder: () => controller.getSuggestions('author'),
                   onSelected: (value) => _authorController.text = value,
                 ),
@@ -97,6 +98,7 @@ class _ComicMetadataDialogState extends ConsumerState<ComicMetadataDialog> {
                 CustomAutocompleteField(
                   label: 'Género',
                   controller: _genreController,
+                  icon: Icons.category,
                   optionsBuilder: () => controller.getSuggestions('genre'),
                   onSelected: (value) => _genreController.text = value,
                 ),
@@ -104,6 +106,7 @@ class _ComicMetadataDialogState extends ConsumerState<ComicMetadataDialog> {
                 CustomAutocompleteField(
                   label: 'Colección',
                   controller: _collectionController,
+                  icon: Icons.collections_bookmark,
                   optionsBuilder: () => controller.getSuggestions('collection'),
                   onSelected: (value) => _collectionController.text = value,
                 ),

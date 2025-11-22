@@ -1,10 +1,14 @@
 import 'package:flutter/material.dart';
+import 'package:manga_reader/core/theme/colors.dart';
 
 class CustomAutocompleteField extends StatelessWidget {
   final String label;
   final Future<List<String>> Function() optionsBuilder;
   final void Function(String) onSelected;
   final TextEditingController controller;
+  final IconData? icon;
+  final double scale;
+  final bool isDark;
 
   const CustomAutocompleteField({
     super.key,
@@ -12,6 +16,9 @@ class CustomAutocompleteField extends StatelessWidget {
     required this.optionsBuilder,
     required this.onSelected,
     required this.controller,
+    this.icon,
+    this.scale = 1.0,
+    this.isDark = false,
   });
 
   @override
@@ -49,14 +56,39 @@ class CustomAutocompleteField extends StatelessWidget {
           return TextFormField(
             controller: fieldTextEditingController,
             focusNode: fieldFocusNode,
+            style: TextStyle(
+              fontSize: 16 * scale,
+              color: isDark ? AppColorsDark.textColor : AppColorsLight.textColor,
+            ),
             decoration: InputDecoration(
               labelText: label,
+              prefixIcon: icon != null
+                  ? Icon(
+                      icon,
+                      color: isDark
+                          ? AppColorsDark.accentColor
+                          : AppColorsLight.accentColor,
+                    )
+                  : null,
               border: OutlineInputBorder(
-                borderRadius: BorderRadius.circular(12),
+                borderRadius: BorderRadius.circular(12 * scale),
+                borderSide: BorderSide.none,
+              ),
+              focusedBorder: OutlineInputBorder(
+                borderRadius: BorderRadius.circular(12 * scale),
+                borderSide: BorderSide(
+                  color: isDark
+                      ? AppColorsDark.accentColor
+                      : AppColorsLight.accentColor,
+                  width: 2,
+                ),
               ),
               filled: true,
-              fillColor: Theme.of(context).colorScheme.surfaceContainerHighest.withValues(alpha: 0.3),
-              contentPadding: const EdgeInsets.symmetric(horizontal: 16, vertical: 14),
+              fillColor: isDark
+                  ? AppColorsDark.cardColor
+                  : AppColorsLight.cardColor.withValues(alpha: 0.5),
+              contentPadding: EdgeInsets.symmetric(
+                  horizontal: 16 * scale, vertical: 14 * scale),
             ),
           );
         },
