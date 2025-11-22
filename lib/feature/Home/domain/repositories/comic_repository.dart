@@ -4,6 +4,9 @@ abstract class ComicRepository {
   Future<ComicEntity> addComic(ComicEntity comic);
 
   Future<List<ComicEntity>> getAllComics();
+  Future<ComicEntity?> getComicByPath(String path);
+  Future<ComicEntity?> getComicByTitle(String title);
+  Future<ComicEntity?> getComicByFilenameMatch(String filename);
 
   Future<void> addBookMark(int id, int bookMark);
 

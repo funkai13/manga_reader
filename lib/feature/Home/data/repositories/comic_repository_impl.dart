@@ -20,6 +20,90 @@ class ComicRepositoryImpl implements ComicRepository {
   ComicRepositoryImpl(this.datasource);
 
   @override
+  Future<ComicEntity?> getComicByPath(String path) async {
+    final comicModel = await datasource.getComicByPath(path);
+    if (comicModel == null) {
+      return null;
+    }
+    return ComicEntity(
+      id: comicModel.id,
+      filePath: comicModel.filePath,
+      title: comicModel.title,
+      picture: comicModel.picture,
+      currentReadPage: comicModel.currentReadPage,
+      totalPages: comicModel.totalPages,
+      lastOpened: comicModel.lastOpened,
+      currentReading: comicModel.currentReading,
+      imagesPath: comicModel.imagesPath,
+      isFavorite: comicModel.isFavorite,
+      isReading: comicModel.isReading,
+      rating: comicModel.rating,
+      bookMarks: comicModel.bookMarks,
+      isCompleted: comicModel.isCompleted,
+      author: comicModel.author,
+      genre: comicModel.genre,
+      collection: comicModel.collection,
+      comicType: comicModel.comicType,
+    );
+  }
+
+  @override
+  Future<ComicEntity?> getComicByTitle(String title) async {
+    final comicModel = await datasource.getComicByTitle(title);
+    if (comicModel == null) {
+      return null;
+    }
+    return ComicEntity(
+      id: comicModel.id,
+      filePath: comicModel.filePath,
+      title: comicModel.title,
+      picture: comicModel.picture,
+      currentReadPage: comicModel.currentReadPage,
+      totalPages: comicModel.totalPages,
+      lastOpened: comicModel.lastOpened,
+      currentReading: comicModel.currentReading,
+      imagesPath: comicModel.imagesPath,
+      isFavorite: comicModel.isFavorite,
+      isReading: comicModel.isReading,
+      rating: comicModel.rating,
+      bookMarks: comicModel.bookMarks,
+      isCompleted: comicModel.isCompleted,
+      author: comicModel.author,
+      genre: comicModel.genre,
+      collection: comicModel.collection,
+      comicType: comicModel.comicType,
+    );
+  }
+
+  @override
+  Future<ComicEntity?> getComicByFilenameMatch(String filename) async {
+    final comicModel = await datasource.getComicByFilenameMatch(filename);
+    if (comicModel == null) {
+      return null;
+    }
+    return ComicEntity(
+      id: comicModel.id,
+      filePath: comicModel.filePath,
+      title: comicModel.title,
+      picture: comicModel.picture,
+      currentReadPage: comicModel.currentReadPage,
+      totalPages: comicModel.totalPages,
+      lastOpened: comicModel.lastOpened,
+      currentReading: comicModel.currentReading,
+      imagesPath: comicModel.imagesPath,
+      isFavorite: comicModel.isFavorite,
+      isReading: comicModel.isReading,
+      rating: comicModel.rating,
+      bookMarks: comicModel.bookMarks,
+      isCompleted: comicModel.isCompleted,
+      author: comicModel.author,
+      genre: comicModel.genre,
+      collection: comicModel.collection,
+      comicType: comicModel.comicType,
+    );
+  }
+
+  @override
   Future<ComicEntity> addComic(ComicEntity comic) async {
     final existingComic = await datasource.getComicByTitle(comic.title);
 

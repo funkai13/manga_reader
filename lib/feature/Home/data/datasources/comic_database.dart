@@ -159,6 +159,38 @@ class ComicDatabase {
     }
   }
 
+  Future<ComicModel?> getComicByPath(String path) async {
+    final db = await database;
+    final result = await db.query(
+      ComicFields.tableName,
+      where: '${ComicFields.filePath} = ?',
+      whereArgs: [path],
+    );
+
+    if (result.isNotEmpty) {
+      return ComicModel.fromMap(result.first);
+    } else {
+      return null;
+    }
+  }
+
+  Future<ComicModel?> getComicByFilenameMatch(String filename) async {
+    final db = await database;
+    // Check if any filePath ends with the filename
+    // We use LIKE with %/filename to match the end of the path
+    final result = await db.query(
+      ComicFields.tableName,
+      where: '${ComicFields.filePath} LIKE ?',
+      whereArgs: ['%/$filename'],
+    );
+
+    if (result.isNotEmpty) {
+      return ComicModel.fromMap(result.first);
+    } else {
+      return null;
+    }
+  }
+
   Future<int> addComic(ComicModel comic) async {
     final db = await database;
     return await db.insert(ComicFields.tableName, comic.toMap());

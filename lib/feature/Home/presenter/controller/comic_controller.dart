@@ -31,6 +31,24 @@ class ComicController extends AsyncNotifier<List<ComicEntity>> {
 
       if (extension == 'cbr' || extension == 'cbz') {
         if (filePath != null) {
+          // 0. Duplicate Check (Title/Filename)
+          // First check by exact title (fastest)
+          var existingComic = await comicRepository.getComicByTitle(fileName);
+          
+          // If not found, check if any existing comic has this filename in its path
+          // This handles cases where the user renamed the comic in the app
+          existingComic ??= await comicRepository.getComicByFilenameMatch(fileName);
+
+          if (existingComic != null) {
+            if (!context.mounted) return;
+            ScaffoldMessenger.of(context).showSnackBar(
+              const SnackBar(
+                content: Text('Este cómic ya está en tu biblioteca.'),
+              ),
+            );
+            return;
+          }
+
           final newComicEntity = ComicEntity(
             filePath: filePath,
             title: fileName,
@@ -46,33 +64,66 @@ class ComicController extends AsyncNotifier<List<ComicEntity>> {
             bookMarks: '',
             isCompleted: false,
           );
+          
+          bool isSpinnerOpen = false;
+          bool isMetadataOpen = false;
+          bool processingFailed = false;
+
           try {
             // 1. Show loading spinner immediately
             if (!context.mounted) return;
+            isSpinnerOpen = true;
             showDialog(
               context: context,
               barrierDismissible: false,
               builder: (context) => const Center(
                 child: CircularProgressIndicator(),
               ),
-            );
+            ).then((_) => isSpinnerOpen = false);
 
-            // 2. Start processing in background
-            final processingFuture = comicRepository.addComic(newComicEntity);
+            // 2. Start processing in background with error handling
+            final processingFuture = comicRepository
+                .addComic(newComicEntity)
+                .onError((error, stackTrace) {
+              processingFailed = true;
+              // Close dialog if open and error occurs
+              if (context.mounted && (isSpinnerOpen || isMetadataOpen)) {
+                Navigator.of(context).maybePop();
+              }
+              if (error != null) {
+                 throw error;
+              } else {
+                 throw Exception('Unknown error during processing');
+              }
+            });
 
-            // 3. Wait a bit to ensure spinner is seen (optional, but requested for UX)
-            // and to allow the background process to initialize
+            // 3. Wait a bit to ensure spinner is seen
             await Future.delayed(const Duration(milliseconds: 500));
+
+            // Check if processing already failed
+            if (processingFailed) {
+              // If failed, the onError callback should have popped the spinner.
+              // We just await the future to let the catch block handle the error.
+              await processingFuture;
+              return;
+            }
 
             // 4. Close spinner and show metadata dialog
             if (!context.mounted) return;
-            Navigator.of(context).pop(); // Close spinner
+            if (isSpinnerOpen) {
+              Navigator.of(context).pop(); // Close spinner
+              isSpinnerOpen = false;
+            }
 
+            isMetadataOpen = true;
             final dialogFuture = showDialog<Map<String, String>?>(
               context: context,
               barrierDismissible: false,
               builder: (context) => ComicMetadataDialog(fileName: fileName),
-            );
+            ).then((value) {
+              isMetadataOpen = false;
+              return value;
+            });
 
             // 5. Wait for both
             final results = await Future.wait([
@@ -96,17 +147,9 @@ class ComicController extends AsyncNotifier<List<ComicEntity>> {
             }
 
             // 5. Update state
-            // Re-fetch to get the updated metadata
             final updatedList = await comicRepository.getAllComics();
             state = AsyncData(updatedList);
           } on UnsupportedComicException catch (e) {
-            // If error happens very fast (before spinner pop), we might need to pop it.
-            // However, since we await Future.delayed, we likely popped it.
-            // But if addComic throws synchronously (it shouldn't), we need to handle it.
-            // For now, let's assume the flow reaches the pop.
-            // Actually, if addComic throws, processingFuture holds the error.
-            // Future.wait will throw.
-            
             if (!context.mounted) return;
             ScaffoldMessenger.of(context).showSnackBar(
               SnackBar(
@@ -135,10 +178,7 @@ class ComicController extends AsyncNotifier<List<ComicEntity>> {
         );
       }
     } else {
-      if (!context.mounted) return;
-      ScaffoldMessenger.of(context).showSnackBar(
-        const SnackBar(content: Text("No se seleccionó ningún archivo.")),
-      );
+      // No file selected
     }
   }
 
