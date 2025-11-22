@@ -29,7 +29,7 @@ class CategoryGridWidget extends ConsumerWidget {
           padding: EdgeInsets.all(16.w * scale),
           gridDelegate: SliverGridDelegateWithFixedCrossAxisCount(
             crossAxisCount: 2,
-            childAspectRatio: 1.0, // Square cards for categories
+            childAspectRatio: 0.7, // Matches ComicCard aspect ratio
             crossAxisSpacing: 16.w * scale,
             mainAxisSpacing: 16.h * scale,
           ),
@@ -51,7 +51,7 @@ class CategoryGridWidget extends ConsumerWidget {
                   ),
                 );
               },
-              onLongPress: () {
+              onEdit: () {
                 showDialog(
                   context: context,
                   builder: (context) => RenameCategoryDialog(

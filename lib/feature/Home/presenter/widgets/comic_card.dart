@@ -8,8 +8,14 @@ import 'package:manga_reader/feature/Home/domain/entity/comic.dart';
 class ComicCard extends StatelessWidget {
   final ComicEntity comic;
   final double scale;
+  final VoidCallback? onEdit;
 
-  const ComicCard({super.key, required this.comic, required this.scale});
+  const ComicCard({
+    super.key,
+    required this.comic,
+    required this.scale,
+    this.onEdit,
+  });
 
   @override
   Widget build(BuildContext context) {
@@ -79,6 +85,26 @@ class ComicCard extends StatelessWidget {
                   ),
                 ),
               ),
+              if (onEdit != null)
+                Positioned(
+                  top: 8.h * scale,
+                  right: 8.w * scale,
+                  child: GestureDetector(
+                    onTap: onEdit,
+                    child: Container(
+                      padding: EdgeInsets.all(6.w * scale),
+                      decoration: BoxDecoration(
+                        color: Colors.black.withValues(alpha: 0.6),
+                        shape: BoxShape.circle,
+                      ),
+                      child: Icon(
+                        Icons.edit,
+                        size: 14.sp * scale,
+                        color: Colors.white,
+                      ),
+                    ),
+                  ),
+                ),
             ],
           ),
         ),

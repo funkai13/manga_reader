@@ -1,5 +1,10 @@
+import 'dart:io';
+import 'dart:ui';
+
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
+import 'package:flutter_screenutil/flutter_screenutil.dart';
+import 'package:manga_reader/core/theme/colors.dart';
 import 'package:manga_reader/feature/Home/domain/entity/comic.dart';
 import 'package:manga_reader/feature/Home/presenter/controller/comic_controller.dart';
 import 'package:manga_reader/feature/Home/presenter/widgets/custom_autocomplete_field.dart';
@@ -14,21 +19,21 @@ class EditComicScreen extends ConsumerStatefulWidget {
 }
 
 class _EditComicScreenState extends ConsumerState<EditComicScreen> {
-  final _formKey = GlobalKey<FormState>();
-  late final TextEditingController _titleController;
-  late final TextEditingController _authorController;
-  late final TextEditingController _genreController;
-  late final TextEditingController _collectionController;
-  late String _selectedType;
+  late TextEditingController _titleController;
+  late TextEditingController _authorController;
+  late TextEditingController _genreController;
+  late TextEditingController _collectionController;
+  late String _comicType;
 
   @override
   void initState() {
     super.initState();
     _titleController = TextEditingController(text: widget.comic.title);
-    _authorController = TextEditingController(text: widget.comic.author);
-    _genreController = TextEditingController(text: widget.comic.genre);
-    _collectionController = TextEditingController(text: widget.comic.collection);
-    _selectedType = widget.comic.comicType ?? 'Manga';
+    _authorController = TextEditingController(text: widget.comic.author ?? '');
+    _genreController = TextEditingController(text: widget.comic.genre ?? '');
+    _collectionController =
+        TextEditingController(text: widget.comic.collection ?? '');
+    _comicType = widget.comic.comicType ?? 'Manga';
   }
 
   @override
@@ -40,118 +45,262 @@ class _EditComicScreenState extends ConsumerState<EditComicScreen> {
     super.dispose();
   }
 
+  Future<void> _save() async {
+    if (_titleController.text.isEmpty) {
+      ScaffoldMessenger.of(context).showSnackBar(
+        const SnackBar(content: Text('El título no puede estar vacío')),
+      );
+      return;
+    }
+
+    await ref.read(comicControllerProvider.notifier).updateComicMetadata(
+          id: widget.comic.id!,
+          author: _authorController.text.isEmpty ? null : _authorController.text,
+          genre: _genreController.text.isEmpty ? null : _genreController.text,
+          collection: _collectionController.text.isEmpty
+              ? null
+              : _collectionController.text,
+          comicType: _comicType,
+          title: _titleController.text,
+        );
+
+    if (mounted) {
+      Navigator.pop(context);
+      ScaffoldMessenger.of(context).showSnackBar(
+        const SnackBar(content: Text('Cómic actualizado')),
+      );
+    }
+  }
+
   @override
   Widget build(BuildContext context) {
-    final controller = ref.read(comicControllerProvider.notifier);
+    final isDark = Theme.of(context).brightness == Brightness.dark;
+    final size = MediaQuery.of(context).size;
+    final isTablet = size.shortestSide >= 600;
+    final scale = isTablet ? 0.8 : 1.0;
 
     return Scaffold(
-      appBar: AppBar(
-        title: const Text('Editar Cómic'),
-        actions: [
-          IconButton(
-            icon: const Icon(Icons.save),
-            onPressed: _save,
-          ),
-        ],
-      ),
-      body: SingleChildScrollView(
-        padding: const EdgeInsets.all(16),
-        child: Form(
-          key: _formKey,
-          child: Column(
-            crossAxisAlignment: CrossAxisAlignment.stretch,
-            children: [
-              TextFormField(
-                controller: _titleController,
-                decoration: const InputDecoration(
-                  labelText: 'Título',
-                  border: OutlineInputBorder(),
-                ),
-                validator: (value) {
-                  if (value == null || value.trim().isEmpty) {
-                    return 'El título no puede estar vacío';
-                  }
-                  return null;
-                },
-              ),
-              const SizedBox(height: 16),
-              CustomAutocompleteField(
-                label: 'Autor',
-                controller: _authorController,
-                optionsBuilder: () => controller.getSuggestions('author'),
-                onSelected: (value) => _authorController.text = value,
-              ),
-              const SizedBox(height: 16),
-              CustomAutocompleteField(
-                label: 'Género',
-                controller: _genreController,
-                optionsBuilder: () => controller.getSuggestions('genre'),
-                onSelected: (value) => _genreController.text = value,
-              ),
-              const SizedBox(height: 16),
-              CustomAutocompleteField(
-                label: 'Colección',
-                controller: _collectionController,
-                optionsBuilder: () => controller.getSuggestions('collection'),
-                onSelected: (value) => _collectionController.text = value,
-              ),
-              const SizedBox(height: 24),
-              Text(
-                'Tipo de Lectura',
-                style: Theme.of(context).textTheme.labelLarge,
-              ),
-              const SizedBox(height: 8),
-              SegmentedButton<String>(
-                segments: const [
-                  ButtonSegment<String>(
-                    value: 'Manga',
-                    label: Text('Manga'),
-                    icon: Icon(Icons.auto_stories),
+      body: CustomScrollView(
+        slivers: [
+          SliverAppBar(
+            expandedHeight: 300.h * scale,
+            pinned: true,
+            flexibleSpace: FlexibleSpaceBar(
+              background: Stack(
+                fit: StackFit.expand,
+                children: [
+                  // Blurred Background
+                  if (widget.comic.picture.isNotEmpty)
+                    Image.file(
+                      File(widget.comic.picture),
+                      fit: BoxFit.cover,
+                    )
+                  else
+                    Container(
+                      color: isDark
+                          ? AppColorsDark.backgroundColor
+                          : AppColorsLight.backgroundColor,
+                    ),
+                  BackdropFilter(
+                    filter: ImageFilter.blur(sigmaX: 10, sigmaY: 10),
+                    child: Container(
+                      color: Colors.black.withValues(alpha: 0.4),
+                    ),
                   ),
-                  ButtonSegment<String>(
-                    value: 'Comic',
-                    label: Text('Cómic'),
-                    icon: Icon(Icons.menu_book),
+
+                  // Sharp Cover Image
+                  Center(
+                    child: Container(
+                      height: 200.h * scale,
+                      width: 150.w * scale,
+                      decoration: BoxDecoration(
+                        borderRadius: BorderRadius.circular(12.r * scale),
+                        boxShadow: [
+                          BoxShadow(
+                            color: Colors.black.withValues(alpha: 0.3),
+                            blurRadius: 20,
+                            offset: const Offset(0, 10),
+                          ),
+                        ],
+                      ),
+                      child: ClipRRect(
+                        borderRadius: BorderRadius.circular(12.r * scale),
+                        child: widget.comic.picture.isNotEmpty
+                            ? Image.file(
+                                File(widget.comic.picture),
+                                fit: BoxFit.cover,
+                              )
+                            : Container(
+                                color: Colors.grey,
+                                child: const Icon(Icons.book, size: 50),
+                              ),
+                      ),
+                    ),
                   ),
                 ],
-                selected: {_selectedType},
-                onSelectionChanged: (Set<String> newSelection) {
-                  setState(() {
-                    _selectedType = newSelection.first;
-                  });
-                },
+              ),
+            ),
+            leading: IconButton(
+              icon: const Icon(Icons.arrow_back, color: Colors.white),
+              onPressed: () => Navigator.pop(context),
+            ),
+            actions: [
+              IconButton(
+                icon: const Icon(Icons.save, color: Colors.white),
+                onPressed: _save,
               ),
             ],
           ),
-        ),
+          SliverToBoxAdapter(
+            child: Padding(
+              padding: EdgeInsets.all(20.w * scale),
+              child: Column(
+                crossAxisAlignment: CrossAxisAlignment.start,
+                children: [
+                  Text(
+                    'Editar Detalles',
+                    style: TextStyle(
+                      fontSize: 24.sp * scale,
+                      fontWeight: FontWeight.bold,
+                      color: isDark
+                          ? AppColorsDark.textColor
+                          : AppColorsLight.textColor,
+                    ),
+                  ),
+                  SizedBox(height: 24.h * scale),
+                  _buildTextField(
+                    controller: _titleController,
+                    label: 'Título',
+                    icon: Icons.title,
+                    isDark: isDark,
+                    scale: scale,
+                  ),
+                  SizedBox(height: 16.h * scale),
+                  CustomAutocompleteField(
+                    controller: _authorController,
+                    label: 'Autor',
+                    icon: Icons.person,
+                    scale: scale,
+                    isDark: isDark,
+                    optionsBuilder: () => ref
+                        .read(comicControllerProvider.notifier)
+                        .getSuggestions('author'),
+                    onSelected: (value) => _authorController.text = value,
+                  ),
+                  SizedBox(height: 16.h * scale),
+                  CustomAutocompleteField(
+                    controller: _genreController,
+                    label: 'Género',
+                    icon: Icons.category,
+                    scale: scale,
+                    isDark: isDark,
+                    optionsBuilder: () => ref
+                        .read(comicControllerProvider.notifier)
+                        .getSuggestions('genre'),
+                    onSelected: (value) => _genreController.text = value,
+                  ),
+                  SizedBox(height: 16.h * scale),
+                  CustomAutocompleteField(
+                    controller: _collectionController,
+                    label: 'Colección',
+                    icon: Icons.collections_bookmark,
+                    scale: scale,
+                    isDark: isDark,
+                    optionsBuilder: () => ref
+                        .read(comicControllerProvider.notifier)
+                        .getSuggestions('collection'),
+                    onSelected: (value) => _collectionController.text = value,
+                  ),
+                  SizedBox(height: 24.h * scale),
+                  Text(
+                    'Tipo de Lectura',
+                    style: TextStyle(
+                      fontSize: 16.sp * scale,
+                      fontWeight: FontWeight.w600,
+                      color: isDark
+                          ? AppColorsDark.textColor
+                          : AppColorsLight.textColor,
+                    ),
+                  ),
+                  SizedBox(height: 12.h * scale),
+                  SegmentedButton<String>(
+                    segments: const [
+                      ButtonSegment(
+                        value: 'Manga',
+                        label: Text('Manga (Der-Izq)'),
+                        icon: Icon(Icons.auto_stories),
+                      ),
+                      ButtonSegment(
+                        value: 'Comic',
+                        label: Text('Comic (Izq-Der)'),
+                        icon: Icon(Icons.menu_book),
+                      ),
+                    ],
+                    selected: {_comicType},
+                    onSelectionChanged: (Set<String> newSelection) {
+                      setState(() {
+                        _comicType = newSelection.first;
+                      });
+                    },
+                    style: ButtonStyle(
+                      visualDensity: VisualDensity.comfortable,
+                      tapTargetSize: MaterialTapTargetSize.shrinkWrap,
+                      side: WidgetStateProperty.all(
+                        BorderSide(
+                          color: isDark
+                              ? AppColorsDark.accentColor
+                              : AppColorsLight.accentColor,
+                        ),
+                      ),
+                    ),
+                  ),
+                  SizedBox(height: 40.h * scale),
+                ],
+              ),
+            ),
+          ),
+        ],
       ),
     );
   }
 
-  Future<void> _save() async {
-    if (_formKey.currentState!.validate()) {
-      try {
-        await ref.read(comicControllerProvider.notifier).updateComicMetadata(
-          id: widget.comic.id!,
-          title: _titleController.text.trim(),
-          author: _authorController.text.trim(),
-          genre: _genreController.text.trim(),
-          collection: _collectionController.text.trim(),
-          comicType: _selectedType,
-        );
-        if (mounted) {
-          Navigator.of(context).pop();
-          ScaffoldMessenger.of(context).showSnackBar(
-            const SnackBar(content: Text('Cambios guardados')),
-          );
-        }
-      } catch (e) {
-        if (mounted) {
-          ScaffoldMessenger.of(context).showSnackBar(
-            const SnackBar(content: Text('Error al guardar cambios')),
-          );
-        }
-      }
-    }
+  Widget _buildTextField({
+    required TextEditingController controller,
+    required String label,
+    required IconData icon,
+    required bool isDark,
+    required double scale,
+  }) {
+    return TextFormField(
+      controller: controller,
+      style: TextStyle(
+        fontSize: 16.sp * scale,
+        color: isDark ? AppColorsDark.textColor : AppColorsLight.textColor,
+      ),
+      decoration: InputDecoration(
+        labelText: label,
+        prefixIcon: Icon(
+          icon,
+          color: isDark ? AppColorsDark.accentColor : AppColorsLight.accentColor,
+        ),
+        filled: true,
+        fillColor: isDark
+            ? AppColorsDark.cardColor
+            : AppColorsLight.cardColor.withValues(alpha: 0.5),
+        border: OutlineInputBorder(
+          borderRadius: BorderRadius.circular(12.r * scale),
+          borderSide: BorderSide.none,
+        ),
+        focusedBorder: OutlineInputBorder(
+          borderRadius: BorderRadius.circular(12.r * scale),
+          borderSide: BorderSide(
+            color: isDark
+                ? AppColorsDark.accentColor
+                : AppColorsLight.accentColor,
+            width: 2,
+          ),
+        ),
+      ),
+    );
   }
 }

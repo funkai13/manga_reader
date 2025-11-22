@@ -27,7 +27,7 @@ class ComicGridWidget extends StatelessWidget {
       padding: EdgeInsets.all(16.w * scale),
       gridDelegate: SliverGridDelegateWithFixedCrossAxisCount(
         crossAxisCount: 2,
-        childAspectRatio: 0.7,
+        childAspectRatio: 0.7, // Matches 3/4 aspect ratio roughly with spacing
         crossAxisSpacing: 16.w * scale,
         mainAxisSpacing: 16.h * scale,
       ),
@@ -43,17 +43,17 @@ class ComicGridWidget extends StatelessWidget {
               ),
             );
           },
-          onLongPress: () {
-            Navigator.push(
-              context,
-              MaterialPageRoute(
-                builder: (_) => EditComicScreen(comic: comic),
-              ),
-            );
-          },
           child: ComicCard(
             comic: comic,
             scale: scale,
+            onEdit: () {
+              Navigator.push(
+                context,
+                MaterialPageRoute(
+                  builder: (_) => EditComicScreen(comic: comic),
+                ),
+              );
+            },
           ),
         );
       },
