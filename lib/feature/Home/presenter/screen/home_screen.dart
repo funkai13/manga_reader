@@ -27,6 +27,8 @@ class _HomeScreenState extends ConsumerState<HomeScreen> {
     final size = MediaQuery.of(context).size;
     final isTablet = size.shortestSide >= 600;
     final scale = isTablet ? 0.8 : 1.0;
+    final SearchController _searchController = SearchController();
+    final FocusNode _searchFocusNode = FocusNode();
     return Scaffold(
       backgroundColor: isDark
           ? AppColorsDark.backgroundColor
@@ -61,7 +63,11 @@ class _HomeScreenState extends ConsumerState<HomeScreen> {
               physics: const BouncingScrollPhysics(),
               slivers: [
                 _buildHomeAppBar(isDark, scale),
-                buildSearchBar(context, comics, isDark, scale),
+                buildSearchBar(context, comics, isDark, scale,
+                    _searchController, _searchFocusNode),
+                SliverToBoxAdapter(
+                  child: SizedBox(height: 24.h * scale),
+                ),
                 if (readingNow.isNotEmpty)
                   SliverToBoxAdapter(
                     child: ComicsCarousel(
