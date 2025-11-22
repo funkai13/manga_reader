@@ -301,7 +301,7 @@ class ComicDatabase {
   Future<List<Map<String, dynamic>>> getAuthorsWithCount() async {
     final db = await database;
     return await db.rawQuery('''
-      SELECT ${ComicFields.author} as name, COUNT(*) as count
+      SELECT ${ComicFields.author} as name, COUNT(*) as count, MIN(${ComicFields.picture}) as coverPath
       FROM ${ComicFields.tableName}
       WHERE ${ComicFields.author} IS NOT NULL AND ${ComicFields.author} != ""
       GROUP BY ${ComicFields.author}
@@ -312,7 +312,7 @@ class ComicDatabase {
   Future<List<Map<String, dynamic>>> getGenresWithCount() async {
     final db = await database;
     return await db.rawQuery('''
-      SELECT ${ComicFields.genre} as name, COUNT(*) as count
+      SELECT ${ComicFields.genre} as name, COUNT(*) as count, MIN(${ComicFields.picture}) as coverPath
       FROM ${ComicFields.tableName}
       WHERE ${ComicFields.genre} IS NOT NULL AND ${ComicFields.genre} != ""
       GROUP BY ${ComicFields.genre}
@@ -323,7 +323,7 @@ class ComicDatabase {
   Future<List<Map<String, dynamic>>> getCollectionsWithCount() async {
     final db = await database;
     return await db.rawQuery('''
-      SELECT ${ComicFields.collection} as name, COUNT(*) as count
+      SELECT ${ComicFields.collection} as name, COUNT(*) as count, MIN(${ComicFields.picture}) as coverPath
       FROM ${ComicFields.tableName}
       WHERE ${ComicFields.collection} IS NOT NULL AND ${ComicFields.collection} != ""
       GROUP BY ${ComicFields.collection}

@@ -1,7 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:manga_reader/feature/Home/presenter/controller/comic_controller.dart';
-import 'package:manga_reader/feature/Library/presenter/widgets/category_list_widget.dart';
+import 'package:manga_reader/feature/Library/presenter/widgets/category_grid_widget.dart';
 import 'package:manga_reader/feature/Library/presenter/widgets/comic_grid_widget.dart';
 
 class LibraryScreen extends ConsumerWidget {
@@ -36,9 +36,9 @@ class LibraryScreen extends ConsumerWidget {
               error: (error, stack) => Center(child: Text('Error: $error')),
               data: (comics) => ComicGridWidget(comics: comics, scale: scale),
             ),
-            const CategoryListWidget(type: 'author'),
-            const CategoryListWidget(type: 'genre'),
-            const CategoryListWidget(type: 'collection'),
+            const CategoryGridWidget(type: 'author'),
+            const CategoryGridWidget(type: 'genre'),
+            const CategoryGridWidget(type: 'collection'),
           ],
         ),
       ),

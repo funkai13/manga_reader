@@ -14,6 +14,7 @@ class LibraryRepositoryImpl implements LibraryRepository {
       name: e['name'] as String,
       count: e['count'] as int,
       type: 'author',
+      coverPath: e['coverPath'] as String?,
     )).toList();
   }
 
@@ -24,6 +25,7 @@ class LibraryRepositoryImpl implements LibraryRepository {
       name: e['name'] as String,
       count: e['count'] as int,
       type: 'genre',
+      coverPath: e['coverPath'] as String?,
     )).toList();
   }
 
@@ -34,6 +36,7 @@ class LibraryRepositoryImpl implements LibraryRepository {
       name: e['name'] as String,
       count: e['count'] as int,
       type: 'collection',
+      coverPath: e['coverPath'] as String?,
     )).toList();
   }
 
