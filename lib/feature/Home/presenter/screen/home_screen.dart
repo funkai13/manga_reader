@@ -4,6 +4,7 @@ import 'package:flutter_screenutil/flutter_screenutil.dart';
 import 'package:manga_reader/feature/Home/presenter/controller/comic_controller.dart';
 import 'package:manga_reader/feature/Home/presenter/helpers/comic_selectors.dart';
 import 'package:manga_reader/feature/Home/presenter/widgets/comics_carousel.dart';
+import 'package:manga_reader/feature/Library/presenter/screens/library_screen.dart';
 
 import '../../../../core/theme/colors.dart';
 import '../widgets/emtpy_comics_screen.dart';
@@ -27,8 +28,8 @@ class _HomeScreenState extends ConsumerState<HomeScreen> {
     final size = MediaQuery.of(context).size;
     final isTablet = size.shortestSide >= 600;
     final scale = isTablet ? 0.8 : 1.0;
-    final SearchController _searchController = SearchController();
-    final FocusNode _searchFocusNode = FocusNode();
+    final searchController = SearchController();
+    final searchFocusNode = FocusNode();
     return Scaffold(
       backgroundColor: isDark
           ? AppColorsDark.backgroundColor
@@ -57,14 +58,14 @@ class _HomeScreenState extends ConsumerState<HomeScreen> {
 
           return RefreshIndicator(
             onRefresh: () async {
-              await ref.refresh(comicControllerProvider.future);
+              return ref.refresh(comicControllerProvider.future);
             },
             child: CustomScrollView(
               physics: const BouncingScrollPhysics(),
               slivers: [
-                _buildHomeAppBar(isDark, scale),
+                _buildHomeAppBar(context, isDark, scale),
                 buildSearchBar(context, comics, isDark, scale,
-                    _searchController, _searchFocusNode),
+                    searchController, searchFocusNode),
                 SliverToBoxAdapter(
                   child: SizedBox(height: 24.h * scale),
                 ),
@@ -104,7 +105,7 @@ class _HomeScreenState extends ConsumerState<HomeScreen> {
   }
 }
 
-SliverAppBar _buildHomeAppBar(bool isDark, double scale) {
+SliverAppBar _buildHomeAppBar(BuildContext context, bool isDark, double scale) {
   return SliverAppBar(
     floating: true,
     snap: true,
@@ -132,12 +133,43 @@ SliverAppBar _buildHomeAppBar(bool isDark, double scale) {
             ),
           ],
         ),
+        child: IconButton(
+          onPressed: () {
+            Navigator.push(
+              context,
+              MaterialPageRoute(
+                builder: (_) => const LibraryScreen(),
+              ),
+            );
+          },
+          icon: Icon(
+            Icons.library_books,
+            size: 16.sp * scale,
+            color: isDark
+                ? AppColorsDark.accentColor
+                : AppColorsLight.accentColor,
+          ),
+        ),
+      ),
+      Container(
+        margin: EdgeInsets.only(right: 16.w * scale),
+        decoration: BoxDecoration(
+          color: isDark ? AppColorsDark.cardColor : AppColorsLight.cardColor,
+          shape: BoxShape.circle,
+          boxShadow: [
+            BoxShadow(
+              color: Colors.black.withValues(alpha: 0.1),
+              blurRadius: 8 * scale,
+              offset: const Offset(0, 2),
+            ),
+          ],
+        ),
         child: Consumer(
-          builder: (context, ref, _) {
+          builder: (ctx, ref, _) {
             return IconButton(
               onPressed: () async => await ref
                   .read(comicControllerProvider.notifier)
-                  .addComic(context),
+                  .addComic(ctx),
               icon: Icon(
                 Icons.add,
                 size: 16.sp * scale,

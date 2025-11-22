@@ -356,6 +356,21 @@ class ComicRepositoryImpl implements ComicRepository {
   Future<List<String>> getDistinctCollections() async {
     return await datasource.getDistinctValues(ComicFields.collection);
   }
+
+  @override
+  Future<List<ComicEntity>> getComicsByAuthor(String author) async {
+    return await datasource.getComicsByAuthor(author);
+  }
+
+  @override
+  Future<List<ComicEntity>> getComicsByGenre(String genre) async {
+    return await datasource.getComicsByGenre(genre);
+  }
+
+  @override
+  Future<List<ComicEntity>> getComicsByCollection(String collection) async {
+    return await datasource.getComicsByCollection(collection);
+  }
 }
 
 // Top-level function for compute

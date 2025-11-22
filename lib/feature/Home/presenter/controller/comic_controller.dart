@@ -198,12 +198,60 @@ class ComicController extends AsyncNotifier<List<ComicEntity>> {
       case 'author':
         return await comicRepository.getDistinctAuthors();
       case 'genre':
-        return await comicRepository.getDistinctGenres();
+        final existingGenres = await comicRepository.getDistinctGenres();
+        final predefinedGenres = [
+          'Shonen',
+          'Seinen',
+          'Shojo',
+          'Josei',
+          'Kodomo',
+          'Isekai',
+          'Fantasía',
+          'Acción',
+          'Aventura',
+          'Comedia',
+          'Drama',
+          'Romance',
+          'Ciencia Ficción',
+          'Terror',
+          'Misterio',
+          'Slice of Life',
+          'Deportes',
+          'Mecha',
+          'Superhéroes',
+          'Histórico',
+        ];
+        // Combine and remove duplicates
+        final allGenres = {...existingGenres, ...predefinedGenres}.toList();
+        allGenres.sort();
+        return allGenres;
       case 'collection':
         return await comicRepository.getDistinctCollections();
       default:
         return [];
     }
+  }
+
+  Future<void> updateComicMetadata({
+    required int id,
+    String? title,
+    String? author,
+    String? genre,
+    String? collection,
+    String? comicType,
+  }) async {
+    final comicRepository = ref.read(comicRepositoryProvider);
+    await comicRepository.updateComicMetadata(
+      id: id,
+      title: title,
+      author: author,
+      genre: genre,
+      collection: collection,
+      comicType: comicType,
+    );
+    // Refresh the list
+    final updatedList = await comicRepository.getAllComics();
+    state = AsyncData(updatedList);
   }
 }
 

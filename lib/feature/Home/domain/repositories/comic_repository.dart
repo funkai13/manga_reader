@@ -23,4 +23,8 @@ abstract class ComicRepository {
   Future<List<String>> getDistinctAuthors();
   Future<List<String>> getDistinctGenres();
   Future<List<String>> getDistinctCollections();
+
+  Future<List<ComicEntity>> getComicsByAuthor(String author);
+  Future<List<ComicEntity>> getComicsByGenre(String genre);
+  Future<List<ComicEntity>> getComicsByCollection(String collection);
 }

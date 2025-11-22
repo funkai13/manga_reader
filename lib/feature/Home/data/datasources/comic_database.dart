@@ -267,4 +267,100 @@ class ComicDatabase {
     );
     return maps.map((e) => e[column] as String).toList();
   }
+
+  Future<void> updateAuthorName(String oldName, String newName) async {
+    final db = await database;
+    await db.update(
+      ComicFields.tableName,
+      {ComicFields.author: newName},
+      where: '${ComicFields.author} = ?',
+      whereArgs: [oldName],
+    );
+  }
+
+  Future<void> updateGenreName(String oldName, String newName) async {
+    final db = await database;
+    await db.update(
+      ComicFields.tableName,
+      {ComicFields.genre: newName},
+      where: '${ComicFields.genre} = ?',
+      whereArgs: [oldName],
+    );
+  }
+
+  Future<void> updateCollectionName(String oldName, String newName) async {
+    final db = await database;
+    await db.update(
+      ComicFields.tableName,
+      {ComicFields.collection: newName},
+      where: '${ComicFields.collection} = ?',
+      whereArgs: [oldName],
+    );
+  }
+
+  Future<List<Map<String, dynamic>>> getAuthorsWithCount() async {
+    final db = await database;
+    return await db.rawQuery('''
+      SELECT ${ComicFields.author} as name, COUNT(*) as count
+      FROM ${ComicFields.tableName}
+      WHERE ${ComicFields.author} IS NOT NULL AND ${ComicFields.author} != ""
+      GROUP BY ${ComicFields.author}
+      ORDER BY ${ComicFields.author} ASC
+    ''');
+  }
+
+  Future<List<Map<String, dynamic>>> getGenresWithCount() async {
+    final db = await database;
+    return await db.rawQuery('''
+      SELECT ${ComicFields.genre} as name, COUNT(*) as count
+      FROM ${ComicFields.tableName}
+      WHERE ${ComicFields.genre} IS NOT NULL AND ${ComicFields.genre} != ""
+      GROUP BY ${ComicFields.genre}
+      ORDER BY ${ComicFields.genre} ASC
+    ''');
+  }
+
+  Future<List<Map<String, dynamic>>> getCollectionsWithCount() async {
+    final db = await database;
+    return await db.rawQuery('''
+      SELECT ${ComicFields.collection} as name, COUNT(*) as count
+      FROM ${ComicFields.tableName}
+      WHERE ${ComicFields.collection} IS NOT NULL AND ${ComicFields.collection} != ""
+      GROUP BY ${ComicFields.collection}
+      ORDER BY ${ComicFields.collection} ASC
+    ''');
+  }
+
+  Future<List<ComicModel>> getComicsByAuthor(String author) async {
+    final db = await database;
+    final result = await db.query(
+      ComicFields.tableName,
+      where: '${ComicFields.author} = ?',
+      whereArgs: [author],
+      orderBy: '${ComicFields.title} ASC',
+    );
+    return result.map((json) => ComicModel.fromMap(json)).toList();
+  }
+
+  Future<List<ComicModel>> getComicsByGenre(String genre) async {
+    final db = await database;
+    final result = await db.query(
+      ComicFields.tableName,
+      where: '${ComicFields.genre} = ?',
+      whereArgs: [genre],
+      orderBy: '${ComicFields.title} ASC',
+    );
+    return result.map((json) => ComicModel.fromMap(json)).toList();
+  }
+
+  Future<List<ComicModel>> getComicsByCollection(String collection) async {
+    final db = await database;
+    final result = await db.query(
+      ComicFields.tableName,
+      where: '${ComicFields.collection} = ?',
+      whereArgs: [collection],
+      orderBy: '${ComicFields.title} ASC',
+    );
+    return result.map((json) => ComicModel.fromMap(json)).toList();
+  }
 }
