@@ -22,7 +22,7 @@ class ComicDatabase {
     final path = '$databasePath/$filePath';
     return await openDatabase(
       path,
-      version: 2,
+      version: 3,
       onCreate: _createDatabase,
       onUpgrade: _upgradeDatabase,
     );
@@ -44,7 +44,11 @@ class ComicDatabase {
           ${ComicFields.isFavorite} ${ComicFields.booleanType},
           ${ComicFields.bookMarks} ${ComicFields.nullableTextType} DEFAULT '',
           ${ComicFields.rating} ${ComicFields.nullableIntType} DEFAULT 0,
-          ${ComicFields.isCompleted} ${ComicFields.booleanType}
+          ${ComicFields.isCompleted} ${ComicFields.booleanType},
+          ${ComicFields.author} ${ComicFields.nullableTextType},
+          ${ComicFields.genre} ${ComicFields.nullableTextType},
+          ${ComicFields.collection} ${ComicFields.nullableTextType},
+          ${ComicFields.comicType} ${ComicFields.nullableTextType}
         )
       ''');
   }
@@ -138,6 +142,21 @@ class ComicDatabase {
         rethrow;
       }
     }
+
+    if (oldVersion < 3) {
+      try {
+        await db.execute(
+            'ALTER TABLE ${ComicFields.tableName} ADD COLUMN ${ComicFields.author} ${ComicFields.nullableTextType}');
+        await db.execute(
+            'ALTER TABLE ${ComicFields.tableName} ADD COLUMN ${ComicFields.genre} ${ComicFields.nullableTextType}');
+        await db.execute(
+            'ALTER TABLE ${ComicFields.tableName} ADD COLUMN ${ComicFields.collection} ${ComicFields.nullableTextType}');
+        await db.execute(
+            'ALTER TABLE ${ComicFields.tableName} ADD COLUMN ${ComicFields.comicType} ${ComicFields.nullableTextType}');
+      } catch (e) {
+        rethrow;
+      }
+    }
   }
 
   Future<int> addComic(ComicModel comic) async {
@@ -170,6 +189,10 @@ class ComicDatabase {
     int? totalPages,
     bool? isReading,
     bool? isCompleted,
+    String? author,
+    String? genre,
+    String? collection,
+    String? comicType,
   }) async {
     final db = await database;
     final Map<String, Object?> values = {};
@@ -185,6 +208,10 @@ class ComicDatabase {
     if (isCompleted != null) {
       values[ComicFields.isCompleted] = isCompleted ? 1 : 0;
     }
+    if (author != null) values[ComicFields.author] = author;
+    if (genre != null) values[ComicFields.genre] = genre;
+    if (collection != null) values[ComicFields.collection] = collection;
+    if (comicType != null) values[ComicFields.comicType] = comicType;
 
     if (values.isNotEmpty) {
       await db.update(
@@ -228,5 +255,16 @@ class ComicDatabase {
 
     if (maps.isEmpty) return null;
     return ComicModel.fromMap(maps.first);
+  }
+
+  Future<List<String>> getDistinctValues(String column) async {
+    final db = await database;
+    final maps = await db.query(
+      ComicFields.tableName,
+      columns: ['DISTINCT $column'],
+      where: '$column IS NOT NULL AND $column != ""',
+      orderBy: column,
+    );
+    return maps.map((e) => e[column] as String).toList();
   }
 }

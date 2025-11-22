@@ -22,4 +22,8 @@ class ComicFields {
   static const bookMarks = 'bookMarks';
   static const rating = 'rating';
   static const isCompleted = 'isCompleted';
+  static const author = 'author';
+  static const genre = 'genre';
+  static const collection = 'collection';
+  static const comicType = 'comicType';
 }

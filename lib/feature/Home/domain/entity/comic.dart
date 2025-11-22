@@ -13,6 +13,10 @@ class ComicEntity {
   final int? rating;
   final String bookMarks;
   final bool isCompleted;
+  final String? author;
+  final String? genre;
+  final String? collection;
+  final String? comicType;
 
   ComicEntity({
     this.id,
@@ -29,6 +33,10 @@ class ComicEntity {
     this.rating,
     required this.bookMarks,
     required this.isCompleted,
+    this.author,
+    this.genre,
+    this.collection,
+    this.comicType,
   });
 
   ComicEntity copyWith({
@@ -46,6 +54,10 @@ class ComicEntity {
     int? rating,
     String? bookMarks,
     bool? isCompleted,
+    String? author,
+    String? genre,
+    String? collection,
+    String? comicType,
   }) {
     return ComicEntity(
       id: id ?? this.id,
@@ -62,6 +74,10 @@ class ComicEntity {
       rating: rating ?? this.rating,
       bookMarks: bookMarks ?? this.bookMarks,
       isCompleted: isCompleted ?? this.isCompleted,
+      author: author ?? this.author,
+      genre: genre ?? this.genre,
+      collection: collection ?? this.collection,
+      comicType: comicType ?? this.comicType,
     );
   }
 }

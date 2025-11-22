@@ -4,6 +4,7 @@ import 'package:file_picker/file_picker.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:manga_reader/feature/Home/domain/exceptions/comic_exceptions.dart';
+import 'package:manga_reader/feature/Home/presenter/widgets/comic_metadata_dialog.dart';
 
 import '../../domain/entity/comic.dart';
 import '../../domain/provider/comic_provider.dart';
@@ -46,22 +47,67 @@ class ComicController extends AsyncNotifier<List<ComicEntity>> {
             isCompleted: false,
           );
           try {
-            final createdComic = await comicRepository.addComic(newComicEntity);
+            // 1. Show loading spinner immediately
+            if (!context.mounted) return;
+            showDialog(
+              context: context,
+              barrierDismissible: false,
+              builder: (context) => const Center(
+                child: CircularProgressIndicator(),
+              ),
+            );
 
-            final currentList = state.value ?? [];
-            final alreadyInState =
-                currentList.any((c) => c.id == createdComic.id);
+            // 2. Start processing in background
+            final processingFuture = comicRepository.addComic(newComicEntity);
 
-            if (alreadyInState) {
-              ScaffoldMessenger.of(context).showSnackBar(
-                const SnackBar(
-                  content: Text('Este cómic ya está en tu biblioteca.'),
-                ),
+            // 3. Wait a bit to ensure spinner is seen (optional, but requested for UX)
+            // and to allow the background process to initialize
+            await Future.delayed(const Duration(milliseconds: 500));
+
+            // 4. Close spinner and show metadata dialog
+            if (!context.mounted) return;
+            Navigator.of(context).pop(); // Close spinner
+
+            final dialogFuture = showDialog<Map<String, String>?>(
+              context: context,
+              barrierDismissible: false,
+              builder: (context) => ComicMetadataDialog(fileName: fileName),
+            );
+
+            // 5. Wait for both
+            final results = await Future.wait([
+              processingFuture,
+              dialogFuture,
+            ], eagerError: false);
+
+            final createdComic = results[0] as ComicEntity;
+            final metadata = results[1] as Map<String, String>?;
+
+            // 4. Update metadata if provided
+            if (metadata != null) {
+              await comicRepository.updateComicMetadata(
+                id: createdComic.id!,
+                title: metadata['title'],
+                author: metadata['author'],
+                genre: metadata['genre'],
+                collection: metadata['collection'],
+                comicType: metadata['comicType'],
               );
-            } else {
-              state = AsyncData([...currentList, createdComic]);
             }
+
+            // 5. Update state
+            // Re-fetch to get the updated metadata
+            final updatedList = await comicRepository.getAllComics();
+            state = AsyncData(updatedList);
           } on UnsupportedComicException catch (e) {
+            // If error happens very fast (before spinner pop), we might need to pop it.
+            // However, since we await Future.delayed, we likely popped it.
+            // But if addComic throws synchronously (it shouldn't), we need to handle it.
+            // For now, let's assume the flow reaches the pop.
+            // Actually, if addComic throws, processingFuture holds the error.
+            // Future.wait will throw.
+            
+            if (!context.mounted) return;
             ScaffoldMessenger.of(context).showSnackBar(
               SnackBar(
                 content: Text(
@@ -72,6 +118,7 @@ class ComicController extends AsyncNotifier<List<ComicEntity>> {
               ),
             );
           } catch (e) {
+            if (!context.mounted) return;
             ScaffoldMessenger.of(context).showSnackBar(
               const SnackBar(
                 content: Text('Ocurrió un error al agregar el cómic.'),
@@ -80,6 +127,7 @@ class ComicController extends AsyncNotifier<List<ComicEntity>> {
           }
         }
       } else {
+        if (!context.mounted) return;
         ScaffoldMessenger.of(context).showSnackBar(
           const SnackBar(
             content: Text("Seleccione un archivo con extensión .cbr o .cbz"),
@@ -87,6 +135,7 @@ class ComicController extends AsyncNotifier<List<ComicEntity>> {
         );
       }
     } else {
+      if (!context.mounted) return;
       ScaffoldMessenger.of(context).showSnackBar(
         const SnackBar(content: Text("No se seleccionó ningún archivo.")),
       );
@@ -140,6 +189,20 @@ class ComicController extends AsyncNotifier<List<ComicEntity>> {
       });
     } catch (error) {
       rethrow;
+    }
+  }
+
+  Future<List<String>> getSuggestions(String type) async {
+    final comicRepository = ref.read(comicRepositoryProvider);
+    switch (type) {
+      case 'author':
+        return await comicRepository.getDistinctAuthors();
+      case 'genre':
+        return await comicRepository.getDistinctGenres();
+      case 'collection':
+        return await comicRepository.getDistinctCollections();
+      default:
+        return [];
     }
   }
 }

@@ -17,7 +17,11 @@ class ComicModel extends ComicEntity {
       required super.isReading,
       required super.bookMarks,
       required super.isCompleted,
-      required super.rating});
+      required super.rating,
+      super.author,
+      super.genre,
+      super.collection,
+      super.comicType});
 
   Map<String, dynamic> toMap() {
     return {
@@ -35,11 +39,15 @@ class ComicModel extends ComicEntity {
       ComicFields.rating: rating,
       ComicFields.bookMarks: bookMarks,
       ComicFields.isCompleted: isCompleted ? 1 : 0,
+      ComicFields.author: author,
+      ComicFields.genre: genre,
+      ComicFields.collection: collection,
+      ComicFields.comicType: comicType,
     };
   }
 
   factory ComicModel.fromMap(Map<String, dynamic> map) {
-    bool _intToBool(dynamic value) {
+    bool intToBool(dynamic value) {
       if (value == null) return false;
       if (value is bool) return value;
       if (value is int) return value != 0;
@@ -49,7 +57,7 @@ class ComicModel extends ComicEntity {
       return false;
     }
 
-    int? _toIntOrNull(dynamic value) {
+    int? toIntOrNull(dynamic value) {
       if (value == null) return null;
       if (value is int) return value == 0 ? null : value;
       if (value is String) {
@@ -69,10 +77,14 @@ class ComicModel extends ComicEntity {
         lastOpened: map[ComicFields.lastOpened] as String? ?? '',
         currentReading: map[ComicFields.currentReading] as int,
         imagesPath: map[ComicFields.imagesPath] as String,
-        isFavorite: _intToBool(map[ComicFields.isFavorite]),
-        isReading: _intToBool(map[ComicFields.isReading]),
-        rating: _toIntOrNull(map[ComicFields.rating]),
+        isFavorite: intToBool(map[ComicFields.isFavorite]),
+        isReading: intToBool(map[ComicFields.isReading]),
+        rating: toIntOrNull(map[ComicFields.rating]),
         bookMarks: map[ComicFields.bookMarks] as String? ?? '',
-        isCompleted: _intToBool(map[ComicFields.isCompleted]));
+        isCompleted: intToBool(map[ComicFields.isCompleted]),
+        author: map[ComicFields.author] as String?,
+        genre: map[ComicFields.genre] as String?,
+        collection: map[ComicFields.collection] as String?,
+        comicType: map[ComicFields.comicType] as String?);
   }
 }

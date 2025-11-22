@@ -1,5 +1,7 @@
 import 'dart:io';
 
+import 'package:flutter/foundation.dart';
+
 import 'package:archive/archive.dart';
 import 'package:manga_reader/feature/Home/domain/exceptions/comic_exceptions.dart';
 import 'package:path/path.dart' as p;
@@ -9,6 +11,7 @@ import 'package:unrar_file/unrar_file.dart';
 import '../../domain/entity/comic.dart';
 import '../../domain/repositories/comic_repository.dart';
 import '../datasources/comic_database.dart';
+import '../models/comic_fields.dart';
 import '../models/comic_model.dart';
 
 class ComicRepositoryImpl implements ComicRepository {
@@ -36,6 +39,10 @@ class ComicRepositoryImpl implements ComicRepository {
         rating: existingComic.rating,
         bookMarks: existingComic.bookMarks,
         isCompleted: existingComic.isCompleted,
+        author: existingComic.author,
+        genre: existingComic.genre,
+        collection: existingComic.collection,
+        comicType: existingComic.comicType,
       );
     }
 
@@ -54,6 +61,10 @@ class ComicRepositoryImpl implements ComicRepository {
       rating: comic.rating,
       bookMarks: comic.bookMarks,
       isCompleted: comic.isCompleted,
+      author: comic.author,
+      genre: comic.genre,
+      collection: comic.collection,
+      comicType: comic.comicType,
     );
 
     final newId = await datasource.addComic(comicModel);
@@ -89,6 +100,10 @@ class ComicRepositoryImpl implements ComicRepository {
         rating: comic.rating,
         bookMarks: comic.bookMarks,
         isCompleted: comic.isCompleted,
+        author: comic.author,
+        genre: comic.genre,
+        collection: comic.collection,
+        comicType: comic.comicType,
       );
     } on UnsupportedComicException {
       await _cleanupFailedInsert(newId, folderPath);
@@ -140,7 +155,8 @@ class ComicRepositoryImpl implements ComicRepository {
     if (ext == '.cbz') {
       try {
         final bytes = await archiveFile.readAsBytes();
-        final archive = ZipDecoder().decodeBytes(bytes);
+        // Use compute to run decodeBytes in a separate isolate
+        final archive = await compute(_decodeZip, bytes);
 
         for (final ent in archive) {
           if (!ent.isFile) continue;
@@ -283,6 +299,10 @@ class ComicRepositoryImpl implements ComicRepository {
             rating: m.rating,
             bookMarks: m.bookMarks,
             isCompleted: m.isCompleted,
+            author: m.author,
+            genre: m.genre,
+            collection: m.collection,
+            comicType: m.comicType,
           ),
         )
         .toList();
@@ -302,4 +322,43 @@ class ComicRepositoryImpl implements ComicRepository {
   Future<void> deleteComic(int id) {
     return datasource.deleteComic(id);
   }
+
+  @override
+  Future<void> updateComicMetadata({
+    required int id,
+    String? title,
+    String? author,
+    String? genre,
+    String? collection,
+    String? comicType,
+  }) async {
+    await datasource.updateComic(
+      id: id,
+      title: title,
+      author: author,
+      genre: genre,
+      collection: collection,
+      comicType: comicType,
+    );
+  }
+
+  @override
+  Future<List<String>> getDistinctAuthors() async {
+    return await datasource.getDistinctValues(ComicFields.author);
+  }
+
+  @override
+  Future<List<String>> getDistinctGenres() async {
+    return await datasource.getDistinctValues(ComicFields.genre);
+  }
+
+  @override
+  Future<List<String>> getDistinctCollections() async {
+    return await datasource.getDistinctValues(ComicFields.collection);
+  }
+}
+
+// Top-level function for compute
+Archive _decodeZip(List<int> bytes) {
+  return ZipDecoder().decodeBytes(bytes);
 }
