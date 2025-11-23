@@ -8,8 +8,13 @@ import 'package:manga_reader/feature/Library/presenter/widgets/rename_category_d
 
 class CategoryGridWidget extends ConsumerWidget {
   final String type; // 'author', 'genre', 'collection'
+  final int crossAxisCount;
 
-  const CategoryGridWidget({super.key, required this.type});
+  const CategoryGridWidget({
+    super.key,
+    required this.type,
+    this.crossAxisCount = 2,
+  });
 
   @override
   Widget build(BuildContext context, WidgetRef ref) {
@@ -28,7 +33,7 @@ class CategoryGridWidget extends ConsumerWidget {
         return GridView.builder(
           padding: EdgeInsets.all(16.w * scale),
           gridDelegate: SliverGridDelegateWithFixedCrossAxisCount(
-            crossAxisCount: 2,
+            crossAxisCount: crossAxisCount,
             childAspectRatio: 0.7, // Matches ComicCard aspect ratio
             crossAxisSpacing: 16.w * scale,
             mainAxisSpacing: 16.h * scale,

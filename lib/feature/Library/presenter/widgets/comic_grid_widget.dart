@@ -8,11 +8,13 @@ import 'package:manga_reader/feature/Home/presenter/widgets/comic_card.dart';
 class ComicGridWidget extends StatelessWidget {
   final List<ComicEntity> comics;
   final double scale;
+  final int crossAxisCount;
 
   const ComicGridWidget({
     super.key,
     required this.comics,
     this.scale = 1.0,
+    this.crossAxisCount = 2,
   });
 
   @override
@@ -26,7 +28,7 @@ class ComicGridWidget extends StatelessWidget {
     return GridView.builder(
       padding: EdgeInsets.all(16.w * scale),
       gridDelegate: SliverGridDelegateWithFixedCrossAxisCount(
-        crossAxisCount: 2,
+        crossAxisCount: crossAxisCount,
         childAspectRatio: 0.7, // Matches 3/4 aspect ratio roughly with spacing
         crossAxisSpacing: 16.w * scale,
         mainAxisSpacing: 16.h * scale,
