@@ -73,12 +73,15 @@ class ComicCard extends StatelessWidget {
                     children: [
                       _buildStatusChip(isDark),
                       if (comic.currentReadPage > 0 && !comic.isCompleted)
-                        Text(
-                          'Pág. ${comic.currentReadPage + 1}',
-                          style: TextStyle(
-                            fontSize: 11.sp,
-                            color: Colors.white.withValues(alpha: 0.9),
-                            fontWeight: FontWeight.w500,
+                        Flexible(
+                          child: Text(
+                            'Pág. ${comic.currentReadPage + 1}',
+                            style: TextStyle(
+                              fontSize: 11.sp,
+                              color: Colors.white.withValues(alpha: 0.9),
+                              fontWeight: FontWeight.w500,
+                            ),
+                            overflow: TextOverflow.ellipsis,
                           ),
                         ),
                     ],
