@@ -64,8 +64,8 @@ class _HomeScreenState extends ConsumerState<HomeScreen> {
               physics: const BouncingScrollPhysics(),
               slivers: [
                 _buildHomeAppBar(context, isDark, scale),
-                buildSearchBar(context, comics, isDark, scale,
-                    searchController, searchFocusNode),
+                buildSearchBar(context, comics, isDark, scale, searchController,
+                    searchFocusNode),
                 SliverToBoxAdapter(
                   child: SizedBox(height: 24.h * scale),
                 ),
@@ -112,7 +112,7 @@ SliverAppBar _buildHomeAppBar(BuildContext context, bool isDark, double scale) {
     elevation: 0,
     backgroundColor: Colors.transparent,
     title: Text(
-      'Biblioteca',
+      'Bienvenido',
       style: TextStyle(
         fontSize: 22.sp * scale,
         fontWeight: FontWeight.bold,
@@ -145,9 +145,8 @@ SliverAppBar _buildHomeAppBar(BuildContext context, bool isDark, double scale) {
           icon: Icon(
             Icons.library_books,
             size: 16.sp * scale,
-            color: isDark
-                ? AppColorsDark.accentColor
-                : AppColorsLight.accentColor,
+            color:
+                isDark ? AppColorsDark.accentColor : AppColorsLight.accentColor,
           ),
         ),
       ),
