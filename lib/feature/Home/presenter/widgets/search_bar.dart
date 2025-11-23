@@ -22,165 +22,160 @@ SliverToBoxAdapter buildSearchBar(
   return SliverToBoxAdapter(
     child: Padding(
       padding: EdgeInsets.symmetric(horizontal: 20.w * scale),
-      child: Focus(
-        onFocusChange: (hasFocus) {
-          if (!hasFocus) {
-            searchController.closeView('');
-          }
-        },
-        child: Container(
-          margin: EdgeInsets.only(bottom: 16.h * scale, top: 16.h * scale),
-          decoration: BoxDecoration(
-            color: isDark ? AppColorsDark.cardColor : AppColorsLight.cardColor,
+      child: Container(
+        margin: EdgeInsets.only(bottom: 16.h * scale, top: 16.h * scale),
+        decoration: BoxDecoration(
+          color: isDark ? AppColorsDark.cardColor : AppColorsLight.cardColor,
+          borderRadius: BorderRadius.circular(16.r * scale),
+          boxShadow: [
+            BoxShadow(
+              color: Colors.black.withValues(alpha: 0.05),
+              blurRadius: 10 * scale,
+              offset: const Offset(0, 2),
+            ),
+          ],
+        ),
+        child: SearchAnchor(
+          isFullScreen: false,
+          shrinkWrap: true,
+          searchController: searchController,
+          headerHeight: barHeight,
+          viewPadding: EdgeInsets.zero,
+          viewSide: BorderSide.none,
+          viewBackgroundColor:
+              isDark ? AppColorsDark.cardColor : AppColorsLight.cardColor,
+          viewShape: RoundedRectangleBorder(
             borderRadius: BorderRadius.circular(16.r * scale),
-            boxShadow: [
-              BoxShadow(
-                color: Colors.black.withValues(alpha: 0.05),
-                blurRadius: 10 * scale,
-                offset: const Offset(0, 2),
-              ),
-            ],
           ),
-          child: SearchAnchor(
-            isFullScreen: false,
-            shrinkWrap: true,
-            searchController: searchController,
-            headerHeight: barHeight,
-            viewPadding: EdgeInsets.zero,
-            viewSide: BorderSide.none,
-            viewBackgroundColor:
-                isDark ? AppColorsDark.cardColor : AppColorsLight.cardColor,
-            viewShape: RoundedRectangleBorder(
-              borderRadius: BorderRadius.circular(16.r * scale),
-            ),
-            viewConstraints: BoxConstraints(
-              maxHeight: 250.h * scale,
-            ),
-            builder: (BuildContext context, SearchController controller) {
-              return SearchBar(
-                focusNode: searchFocusNode,
-                autoFocus: false,
-                controller: controller,
-                padding: WidgetStatePropertyAll(
-                  EdgeInsets.symmetric(
-                    horizontal: 16.w * scale,
-                    vertical: 8.h * scale,
-                  ),
+          viewConstraints: BoxConstraints(
+            maxHeight: 250.h * scale,
+          ),
+          builder: (BuildContext context, SearchController controller) {
+            return SearchBar(
+              focusNode: searchFocusNode,
+              autoFocus: false,
+              controller: controller,
+              padding: WidgetStatePropertyAll(
+                EdgeInsets.symmetric(
+                  horizontal: 16.w * scale,
+                  vertical: 8.h * scale,
                 ),
-                constraints: BoxConstraints(
-                  minHeight: barHeight,
-                  maxHeight: barHeight,
-                ),
-                onTap: controller.openView,
-                onChanged: (_) => controller.openView(),
-                onTapOutside: (_) {
-                  FocusScope.of(context).unfocus();
-                },
-                leading: Icon(
-                  Icons.search,
+              ),
+              constraints: BoxConstraints(
+                minHeight: barHeight,
+                maxHeight: barHeight,
+              ),
+              onTap: controller.openView,
+              onChanged: (_) => controller.openView(),
+              onTapOutside: (_) {
+                FocusScope.of(context).unfocus();
+              },
+              leading: Icon(
+                Icons.search,
+                color: isDark
+                    ? AppColorsDark.textColor.withValues(alpha: 0.6)
+                    : AppColorsLight.textColor.withValues(alpha: 0.6),
+                size: 20.sp * scale,
+              ),
+              hintText: 'Buscar en tu biblioteca',
+              hintStyle: WidgetStatePropertyAll(
+                TextStyle(
                   color: isDark
-                      ? AppColorsDark.textColor.withValues(alpha: 0.6)
-                      : AppColorsLight.textColor.withValues(alpha: 0.6),
-                  size: 20.sp * scale,
+                      ? AppColorsDark.textColor.withValues(alpha: 0.4)
+                      : AppColorsLight.textColor.withValues(alpha: 0.4),
+                  fontSize: 12.sp * scale,
                 ),
-                hintText: 'Buscar en tu biblioteca',
-                hintStyle: WidgetStatePropertyAll(
-                  TextStyle(
-                    color: isDark
-                        ? AppColorsDark.textColor.withValues(alpha: 0.4)
-                        : AppColorsLight.textColor.withValues(alpha: 0.4),
-                    fontSize: 12.sp * scale,
-                  ),
+              ),
+              backgroundColor: WidgetStatePropertyAll(
+                isDark ? AppColorsDark.cardColor : AppColorsLight.cardColor,
+              ),
+              shape: WidgetStatePropertyAll(
+                RoundedRectangleBorder(
+                  borderRadius: BorderRadius.circular(16.r * scale),
+                  side: BorderSide.none,
                 ),
-                backgroundColor: WidgetStatePropertyAll(
-                  isDark ? AppColorsDark.cardColor : AppColorsLight.cardColor,
-                ),
-                shape: WidgetStatePropertyAll(
-                  RoundedRectangleBorder(
-                    borderRadius: BorderRadius.circular(16.r * scale),
-                    side: BorderSide.none,
-                  ),
-                ),
-              );
-            },
-            suggestionsBuilder:
-                (BuildContext context, SearchController controller) {
-              final inputRaw = controller.text;
-              final input = inputRaw.toLowerCase().trim();
+              ),
+            );
+          },
+          suggestionsBuilder:
+              (BuildContext context, SearchController controller) {
+            final inputRaw = controller.text;
+            final input = inputRaw.toLowerCase().trim();
 
-              if (input.isEmpty) {
-                return const Iterable<Widget>.empty();
-              }
+            if (input.isEmpty) {
+              return const Iterable<Widget>.empty();
+            }
 
-              final results = comics
-                  .where(
-                    (comic) => comic.title.toLowerCase().contains(input),
-                  )
-                  .take(20)
-                  .toList();
+            final results = comics
+                .where(
+                  (comic) => comic.title.toLowerCase().contains(input),
+                )
+                .take(20)
+                .toList();
 
-              if (results.isEmpty) {
-                return [
-                  ListTile(
-                    leading: const Icon(Icons.search_off),
-                    title: const Text('Sin resultados'),
-                    subtitle: Text(
-                      'No se encontró ningún cómic con "$inputRaw"',
-                      maxLines: 1,
-                      overflow: TextOverflow.ellipsis,
-                    ),
-                    onTap: () {
-                      controller.closeView('');
-                      controller.clear();
-                      FocusScope.of(context).unfocus();
-                    },
-                  ),
-                ];
-              }
-
-              return results.map((comic) {
-                return ListTile(
-                  contentPadding: EdgeInsets.symmetric(
-                    horizontal: 12.w * scale,
-                    vertical: 4.h * scale,
-                  ),
-                  leading: _buildComicThumbnail(comic, isDark, scale),
-                  title: _buildHighlightedTitle(
-                    comic.title,
-                    inputRaw,
-                    isDark,
-                    scale,
-                  ),
+            if (results.isEmpty) {
+              return [
+                ListTile(
+                  leading: const Icon(Icons.search_off),
+                  title: const Text('Sin resultados'),
                   subtitle: Text(
-                    comic.isCompleted
-                        ? 'Completado'
-                        : comic.isReading
-                            ? 'En progreso'
-                            : (comic.currentReadPage == 0
-                                ? 'Sin leer'
-                                : 'Leído'),
+                    'No se encontró ningún cómic con "$inputRaw"',
                     maxLines: 1,
                     overflow: TextOverflow.ellipsis,
-                    style: TextStyle(fontSize: 11.sp * scale),
                   ),
-                  onTap: () async {
-                    controller.closeView(comic.title);
-                    FocusScope.of(context).unfocus();
-
-                    await Navigator.push(
-                      context,
-                      MaterialPageRoute(
-                        builder: (context) => ComicViewerScreen(comic: comic),
-                      ),
-                    );
-
-                    controller.text = '';
+                  onTap: () {
+                    controller.closeView('');
+                    controller.clear();
                     FocusScope.of(context).unfocus();
                   },
-                );
-              });
-            },
-          ),
+                ),
+              ];
+            }
+
+            return results.map((comic) {
+              return ListTile(
+                contentPadding: EdgeInsets.symmetric(
+                  horizontal: 12.w * scale,
+                  vertical: 4.h * scale,
+                ),
+                leading: _buildComicThumbnail(comic, isDark, scale),
+                title: _buildHighlightedTitle(
+                  comic.title,
+                  inputRaw,
+                  isDark,
+                  scale,
+                ),
+                subtitle: Text(
+                  comic.isCompleted
+                      ? 'Completado'
+                      : comic.isReading
+                          ? 'En progreso'
+                          : (comic.currentReadPage == 0
+                              ? 'Sin leer'
+                              : 'Leído'),
+                  maxLines: 1,
+                  overflow: TextOverflow.ellipsis,
+                  style: TextStyle(fontSize: 11.sp * scale),
+                ),
+                onTap: () async {
+                  controller.closeView(comic.title);
+                  FocusScope.of(context).unfocus();
+
+                  await Navigator.push(
+                    context,
+                    MaterialPageRoute(
+                      builder: (context) => ComicViewerScreen(comic: comic),
+                    ),
+                  );
+
+                  if (!context.mounted) return;
+
+                  controller.text = '';
+                  FocusScope.of(context).unfocus();
+                },
+              );
+            });
+          },
         ),
       ),
     ),
@@ -220,8 +215,8 @@ Widget _fallbackThumb(bool isDark, double width, double height, double scale) {
       Icons.book,
       size: 18.sp * scale,
       color: isDark
-          ? AppColorsDark.textColor.withOpacity(0.4)
-          : AppColorsLight.textColor.withOpacity(0.4),
+          ? AppColorsDark.textColor.withValues(alpha: 0.4)
+          : AppColorsLight.textColor.withValues(alpha: 0.4),
     ),
   );
 }
