@@ -37,6 +37,7 @@ class _ComicViewerScreenState extends ConsumerState<ComicViewerScreen> {
   void initState() {
     super.initState();
 
+    _mangaMode = widget.comic.comicType == 'Manga';
     _pageController = PageController();
     SystemChrome.setEnabledSystemUIMode(SystemUiMode.immersiveSticky);
 
@@ -93,7 +94,13 @@ class _ComicViewerScreenState extends ConsumerState<ComicViewerScreen> {
 
   void _toggleControls() => setState(() => _showControls = !_showControls);
 
-  void _toggleMangaMode() => setState(() => _mangaMode = !_mangaMode);
+  void _toggleMangaMode() {
+    setState(() => _mangaMode = !_mangaMode);
+    ref.read(comicControllerProvider.notifier).updateComicMetadata(
+          id: widget.comic.id!,
+          comicType: _mangaMode ? 'Manga' : 'Comic',
+        );
+  }
 
   void _toggleBookMark() {
     ref
