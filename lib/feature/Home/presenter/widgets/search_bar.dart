@@ -7,8 +7,6 @@ import 'package:manga_reader/feature/Home/domain/entity/comic.dart';
 
 import '../screen/comic_viewer_screen.dart';
 
-const double kSearchBarBaseHeight = 100.0;
-
 SliverToBoxAdapter buildSearchBar(
   BuildContext context,
   List<ComicEntity> comics,
@@ -16,7 +14,9 @@ SliverToBoxAdapter buildSearchBar(
   double scale,
   SearchController searchController,
   FocusNode searchFocusNode,
+  bool isTablet,
 ) {
+  final double kSearchBarBaseHeight = isTablet ? 100.0 : 50.0;
   final barHeight = kSearchBarBaseHeight * scale;
 
   return SliverToBoxAdapter(
@@ -150,9 +150,7 @@ SliverToBoxAdapter buildSearchBar(
                       ? 'Completado'
                       : comic.isReading
                           ? 'En progreso'
-                          : (comic.currentReadPage == 0
-                              ? 'Sin leer'
-                              : 'Leído'),
+                          : (comic.currentReadPage == 0 ? 'Sin leer' : 'Leído'),
                   maxLines: 1,
                   overflow: TextOverflow.ellipsis,
                   style: TextStyle(fontSize: 11.sp * scale),

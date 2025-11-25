@@ -63,9 +63,9 @@ class _HomeScreenState extends ConsumerState<HomeScreen> {
             child: CustomScrollView(
               physics: const BouncingScrollPhysics(),
               slivers: [
-                _buildHomeAppBar(context, isDark, scale),
+                _buildHomeAppBar(context, isDark, scale, isTablet),
                 buildSearchBar(context, comics, isDark, scale, searchController,
-                    searchFocusNode),
+                    searchFocusNode, isTablet),
                 SliverToBoxAdapter(
                   child: SizedBox(height: 24.h * scale),
                 ),
@@ -105,7 +105,8 @@ class _HomeScreenState extends ConsumerState<HomeScreen> {
   }
 }
 
-SliverAppBar _buildHomeAppBar(BuildContext context, bool isDark, double scale) {
+SliverAppBar _buildHomeAppBar(
+    BuildContext context, bool isDark, double scale, bool isTablet) {
   return SliverAppBar(
     floating: true,
     snap: true,
